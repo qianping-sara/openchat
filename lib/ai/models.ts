@@ -61,6 +61,19 @@ export const chatModels: ChatModel[] = [
     provider: "xai",
     description: "Fast with 30K context",
   },
+  // DeepSeek
+  {
+    id: "deepseek/deepseek-chat",
+    name: "DeepSeek Chat",
+    provider: "deepseek",
+    description: "Cost-effective and powerful chat model",
+  },
+  {
+    id: "deepseek/deepseek-reasoner",
+    name: "DeepSeek R1",
+    provider: "deepseek",
+    description: "Advanced reasoning model with chain-of-thought",
+  },
   // Reasoning models (extended thinking)
   {
     id: "anthropic/claude-3.7-sonnet-thinking",

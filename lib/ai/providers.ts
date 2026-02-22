@@ -1,10 +1,18 @@
 import { gateway } from "@ai-sdk/gateway";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
 import { isTestEnvironment } from "../constants";
+
+// DeepSeek provider using OpenAI-compatible API
+const deepseek = createOpenAICompatible({
+  name: "deepseek",
+  apiKey: process.env.DEEPSEEK_API_KEY ?? "",
+  baseURL: "https://api.deepseek.com",
+});
 
 const THINKING_SUFFIX_REGEX = /-thinking$/;
 
@@ -30,6 +38,12 @@ export const myProvider = isTestEnvironment
 export function getLanguageModel(modelId: string) {
   if (isTestEnvironment && myProvider) {
     return myProvider.languageModel(modelId);
+  }
+
+  // Use direct DeepSeek API if model starts with "deepseek/"
+  if (modelId.startsWith("deepseek/")) {
+    const modelName = modelId.replace("deepseek/", "");
+    return deepseek(modelName);
   }
 
   const isReasoningModel =
