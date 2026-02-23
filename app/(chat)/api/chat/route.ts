@@ -152,7 +152,7 @@ export async function POST(request: Request) {
       // Discover skills and get files to upload
       const { skill, files, instructions } = await experimental_createSkillTool(
         {
-          skillsDirectory: ".agents/skills",
+          skillsDirectory: "lib/ai/skills",
         }
       );
       skillTool = skill;
@@ -245,7 +245,9 @@ export async function POST(request: Request) {
           dataStream.write({ type: "text-end", id: errorId });
         } finally {
           // Run cleanup in background so execute() can return and stream stays responsive.
-          void cleanupMCPClients(mcpClients);
+          cleanupMCPClients(mcpClients).catch((err) => {
+            console.error("Error during MCP client cleanup:", err);
+          });
         }
       },
       generateId: generateUUID,
