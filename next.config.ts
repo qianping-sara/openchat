@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ["@mongodb-js/zstd", "node-liblzma"],
 };
 
 export default nextConfig;
