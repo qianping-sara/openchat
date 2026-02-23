@@ -5,12 +5,14 @@ import {
   createUIMessageStreamResponse,
   generateId,
   stepCountIs,
-  streamText,
+  ToolLoopAgent,
 } from "ai";
+import { experimental_createSkillTool } from "bash-tool";
 import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { cleanupMCPClients, getMCPTools } from "@/lib/ai/mcp/tools";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
@@ -36,7 +38,8 @@ import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
-export const maxDuration = 60;
+// Tool-loop (MCP, skills) can run multiple steps in one request; allow enough time.
+export const maxDuration = 300;
 
 function getStreamContext() {
   try {
@@ -136,47 +139,91 @@ export async function POST(request: Request) {
 
     const modelMessages = await convertToModelMessages(uiMessages);
 
+    // Load bash-tool skills so agent can call skills via bashtools
+    let skillTool: Awaited<
+      ReturnType<typeof experimental_createSkillTool>
+    > | null = null;
+    try {
+      skillTool = await experimental_createSkillTool({
+        skillsDirectory: ".agents/skills",
+      });
+    } catch (_) {
+      // Skills optional; agent still has MCP + built-in tools
+    }
+
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        const result = streamText({
-          model: getLanguageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: modelMessages,
-          stopWhen: stepCountIs(5),
-          experimental_activeTools: isReasoningModel
-            ? []
-            : [
-                "getWeather",
-                "createDocument",
-                "updateDocument",
-                "requestSuggestions",
-              ],
-          providerOptions: isReasoningModel
-            ? {
-                anthropic: {
-                  thinking: { type: "enabled", budgetTokens: 10_000 },
-                },
-              }
-            : undefined,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({ session, dataStream }),
-          },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: "stream-text",
-          },
-        });
+        // Load MCP tools
+        const { tools: mcpTools, clients: mcpClients } = await getMCPTools();
 
-        dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
+        // Combine MCP tools, built-in tools, and optional skill tool
+        const allTools = {
+          ...(skillTool ? { skill: skillTool.skill } : {}),
+          ...mcpTools,
+          getWeather,
+          createDocument: createDocument({ session, dataStream }),
+          updateDocument: updateDocument({ session, dataStream }),
+          requestSuggestions: requestSuggestions({ session, dataStream }),
+        };
 
-        if (titlePromise) {
-          const title = await titlePromise;
-          dataStream.write({ type: "data-chat-title", data: title });
-          updateChatTitleById({ chatId: id, title });
+        try {
+          // Multi-step loop: each step runs until model finishes; tool results are sent as
+          // tool-result/tool-error so the next step runs. The SDK passes tool results back
+          // into context (toResponseMessages + streamStep), so the model sees prior thoughts.
+          // stopWhen: stepCountIs(20) allows up to 20 steps (e.g. Sequential Thinking 5/5).
+          // MCP tools are wrapped to never reject so stepToolOutputs always gets an entry.
+          const agent = new ToolLoopAgent({
+            model: getLanguageModel(selectedChatModel),
+            instructions: systemPrompt({ selectedChatModel, requestHints }),
+            tools: allTools,
+            stopWhen: stepCountIs(20),
+            experimental_telemetry: isProductionEnvironment
+              ? {
+                  isEnabled: true,
+                  functionId: "tool-loop-agent",
+                }
+              : undefined,
+            providerOptions: isReasoningModel
+              ? {
+                  anthropic: {
+                    thinking: { type: "enabled", budgetTokens: 10_000 },
+                  },
+                }
+              : undefined,
+          });
+
+          const result = await agent.stream({
+            messages: modelMessages,
+          });
+
+          // Merge first so the client receives reasoning/tool chunks immediately.
+          dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
+
+          if (titlePromise) {
+            titlePromise
+              .then((title) => {
+                dataStream.write({ type: "data-chat-title", data: title });
+                updateChatTitleById({ chatId: id, title });
+              })
+              .catch(() => {
+                // ignore title generation failure
+              });
+          }
+        } catch (error) {
+          const errorId = generateUUID();
+          const message =
+            error instanceof Error ? error.message : String(error);
+          dataStream.write({ type: "text-start", id: errorId });
+          dataStream.write({
+            type: "text-delta",
+            id: errorId,
+            delta: `\n\nSomething went wrong and the response stopped: ${message}`,
+          });
+          dataStream.write({ type: "text-end", id: errorId });
+        } finally {
+          // Run cleanup in background so execute() can return and stream stays responsive.
+          void cleanupMCPClients(mcpClients);
         }
       },
       generateId: generateUUID,
@@ -217,7 +264,10 @@ export async function POST(request: Request) {
           });
         }
       },
-      onError: () => "Oops, an error occurred!",
+      onError: (error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        return `Something went wrong (response stopped): ${message}`;
+      },
     });
 
     return createUIMessageStreamResponse({

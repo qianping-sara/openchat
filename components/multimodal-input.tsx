@@ -426,7 +426,6 @@ export const MultimodalInput = memo(
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
       return false;
     }
-
     return true;
   }
 );

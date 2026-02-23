@@ -65,6 +65,14 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
   );
 };
 
+/** Human-readable label for tool type (e.g. "tool-sequential_thinking" → "Sequential thinking") */
+function getToolDisplayName(toolType: string): string {
+  const name = toolType.startsWith("tool-")
+    ? toolType.slice(5).replace(/_/g, " ")
+    : toolType;
+  return name.length > 0 ? name.charAt(0).toUpperCase() + name.slice(1) : name;
+}
+
 export const ToolHeader = ({
   className,
   type,
@@ -80,7 +88,9 @@ export const ToolHeader = ({
   >
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <WrenchIcon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="truncate font-medium text-sm">{type}</span>
+      <span className="truncate font-medium text-sm">
+        {getToolDisplayName(type)}
+      </span>
     </div>
     <div className="flex shrink-0 items-center gap-2">
       {getStatusBadge(state)}

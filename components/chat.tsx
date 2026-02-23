@@ -132,6 +132,7 @@ export function Chat({
       },
     }),
     onData: (dataPart) => {
+      console.log("[useChat onData]", dataPart);
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
     },
     onFinish: () => {
