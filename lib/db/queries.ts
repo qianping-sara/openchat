@@ -135,9 +135,16 @@ export async function deleteAllChatsByUserId({ userId }: { userId: string }) {
 
     const chatIds = userChats.map((c) => c.id);
 
+    // Delete all chat-related data
     await db.delete(vote).where(inArray(vote.chatId, chatIds));
     await db.delete(message).where(inArray(message.chatId, chatIds));
     await db.delete(stream).where(inArray(stream.chatId, chatIds));
+
+    // Delete all user's suggestions
+    await db.delete(suggestion).where(eq(suggestion.userId, userId));
+
+    // Delete all user's documents
+    await db.delete(document).where(eq(document.userId, userId));
 
     const deletedChats = await db
       .delete(chat)
