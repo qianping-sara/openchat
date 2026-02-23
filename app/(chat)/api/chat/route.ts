@@ -166,8 +166,10 @@ export async function POST(request: Request) {
         files,
       });
       bashTools = tools;
-    } catch (_) {
+      console.log("[Skills] Successfully loaded skills from lib/ai/skills");
+    } catch (error) {
       // Skills optional; agent still has MCP + built-in tools
+      console.error("[Skills] Failed to load skills:", error);
     }
 
     const stream = createUIMessageStream({
