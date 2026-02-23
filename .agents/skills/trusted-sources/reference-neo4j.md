@@ -1,14 +1,14 @@
 # Neo4j 图 — 使用细节（3.2 用）
 
-**当前 schema 不在此写死**，每次查询前必须通过 **get-schema** 获取节点标签、关系类型与属性，再编写只读 Cypher。
+**当前 schema 不在此写死**，每次查询前必须通过 **getSchema** 获取节点标签、关系类型与属性，再编写只读 Cypher。
 
 ## 工具与顺序
 
 | 步骤 | 工具 | 说明 |
 |------|------|------|
-| 1 | `get-schema` | 获取当前图的节点类型、关系类型、属性；据此写 Cypher。 |
-| 2 | `read-cypher` | 仅执行只读查询（MATCH/RETURN/WHERE，可带 params）；禁止写操作。 |
-| 3 | `list-gds-procedures` | 仅当需要图算法（中心性、社区、路径等）时调用，再按返回说明使用。 |
+| 1 | `getSchema` | 获取当前图的节点类型、关系类型、属性；据此写 Cypher。 |
+| 2 | `readCypher ` | 仅执行只读查询（MATCH/RETURN/WHERE，可带 params）；禁止写操作。 |
+| 3 | `listGdsProcedures` | 仅当需要图算法（中心性、社区、路径等）时调用，再按返回说明使用。 |
 
 ## 查询锚点（补全后再查）
 
