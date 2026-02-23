@@ -150,6 +150,20 @@ export async function POST(request: Request) {
       null;
     let skillsInstructions = "";
     try {
+      // Check if skills directory exists
+      const fs = await import("node:fs/promises");
+      const path = await import("node:path");
+      const skillsPath = path.join(process.cwd(), "lib/ai/skills");
+
+      try {
+        await fs.access(skillsPath);
+        console.log("[Skills] Skills directory exists at:", skillsPath);
+      } catch {
+        console.error("[Skills] Skills directory NOT found at:", skillsPath);
+        console.error("[Skills] Current working directory:", process.cwd());
+        throw new Error("Skills directory not found");
+      }
+
       // Discover skills and get files to upload
       const { skill, files, instructions } = await experimental_createSkillTool(
         {
@@ -166,7 +180,11 @@ export async function POST(request: Request) {
         files,
       });
       bashTools = tools;
-      console.log("[Skills] Successfully loaded skills from lib/ai/skills");
+      console.log(
+        "[Skills] Successfully loaded",
+        Object.keys(tools || {}).length,
+        "bash tools"
+      );
     } catch (error) {
       // Skills optional; agent still has MCP + built-in tools
       console.error("[Skills] Failed to load skills:", error);
