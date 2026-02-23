@@ -7,7 +7,7 @@ import {
   stepCountIs,
   ToolLoopAgent,
 } from "ai";
-import { experimental_createSkillTool } from "bash-tool";
+import { createBashTool, experimental_createSkillTool } from "bash-tool";
 import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
 import { auth, type UserType } from "@/app/(auth)/auth";
@@ -140,13 +140,30 @@ export async function POST(request: Request) {
     const modelMessages = await convertToModelMessages(uiMessages);
 
     // Load bash-tool skills so agent can call skills via bashtools
-    let skillTool: Awaited<
-      ReturnType<typeof experimental_createSkillTool>
-    > | null = null;
+    // See: https://ai-sdk.dev/cookbook/guides/agent-skills
+    let skillTool:
+      | Awaited<ReturnType<typeof experimental_createSkillTool>>["skill"]
+      | null = null;
+    let bashTools: Awaited<ReturnType<typeof createBashTool>>["tools"] | null =
+      null;
+    let skillsInstructions = "";
     try {
-      skillTool = await experimental_createSkillTool({
-        skillsDirectory: ".agents/skills",
+      // Discover skills and get files to upload
+      const { skill, files, instructions } = await experimental_createSkillTool(
+        {
+          skillsDirectory: ".agents/skills",
+        }
+      );
+      skillTool = skill;
+      skillsInstructions = instructions;
+
+      // Create bash tool with skill files
+      // DON'T pass instructions to extraInstructions - it adds misleading text
+      // about running scripts. Instead, we'll add instructions to system prompt.
+      const { tools } = await createBashTool({
+        files,
       });
+      bashTools = tools;
     } catch (_) {
       // Skills optional; agent still has MCP + built-in tools
     }
@@ -157,9 +174,10 @@ export async function POST(request: Request) {
         // Load MCP tools
         const { tools: mcpTools, clients: mcpClients } = await getMCPTools();
 
-        // Combine MCP tools, built-in tools, and optional skill tool
+        // Combine MCP tools, built-in tools, skill tool, and bash tools
         const allTools = {
-          ...(skillTool ? { skill: skillTool.skill } : {}),
+          ...(skillTool ? { skill: skillTool } : {}),
+          ...(bashTools || {}),
           ...mcpTools,
           getWeather,
           createDocument: createDocument({ session, dataStream }),
@@ -175,7 +193,9 @@ export async function POST(request: Request) {
           // MCP tools are wrapped to never reject so stepToolOutputs always gets an entry.
           const agent = new ToolLoopAgent({
             model: getLanguageModel(selectedChatModel),
-            instructions: systemPrompt({ selectedChatModel, requestHints }),
+            instructions:
+              systemPrompt({ selectedChatModel, requestHints }) +
+              (skillsInstructions ? `\n\n${skillsInstructions}` : ""),
             tools: allTools,
             stopWhen: stepCountIs(20),
             experimental_telemetry: isProductionEnvironment
