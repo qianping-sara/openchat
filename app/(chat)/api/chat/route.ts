@@ -136,6 +136,9 @@ export async function POST(request: Request) {
       selectedChatModel.includes("reasoning") ||
       selectedChatModel.includes("thinking");
 
+    // Check if it's a Gemini 3 model (supports thinking via thinkingConfig)
+    const isGemini3Model = selectedChatModel.startsWith("google/gemini-3");
+
     const modelMessages = await convertToModelMessages(uiMessages);
 
     // Load bash-tool skills so agent can call skills via bashtools
@@ -210,7 +213,16 @@ export async function POST(request: Request) {
                     thinking: { type: "enabled", budgetTokens: 10_000 },
                   },
                 }
-              : undefined,
+              : isGemini3Model
+                ? {
+                    google: {
+                      thinkingConfig: {
+                        thinkingLevel: "high",
+                        includeThoughts: true,
+                      },
+                    },
+                  }
+                : undefined,
           });
 
           const result = await agent.stream({
