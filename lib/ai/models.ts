@@ -49,18 +49,24 @@ export const chatModels: ChatModel[] = [
     description: "Ultra fast and affordable",
   },
   {
+    id: "google/gemini-3-flash",
+    name: "Gemini 3 Flash Lite",
+    provider: "google",
+    description: "Ultra fast and affordable",
+  },
+  {
     id: "google/gemini-3-pro-preview",
     name: "Gemini 3 Pro",
     provider: "google",
     description: "Most capable Google model",
   },
   // xAI
-  {
-    id: "xai/grok-4.1-fast-non-reasoning",
-    name: "Grok 4.1 Fast",
-    provider: "xai",
-    description: "Fast with 30K context",
-  },
+  // {
+  //   id: "xai/grok-4.1-fast-non-reasoning",
+  //   name: "Grok 4.1 Fast",
+  //   provider: "xai",
+  //   description: "Fast with 30K context",
+  // },
   // DeepSeek
   {
     id: "deepseek/deepseek-chat",
@@ -81,12 +87,12 @@ export const chatModels: ChatModel[] = [
     provider: "reasoning",
     description: "Extended thinking for complex problems",
   },
-  {
-    id: "xai/grok-code-fast-1-thinking",
-    name: "Grok Code Fast",
-    provider: "reasoning",
-    description: "Reasoning optimized for code",
-  },
+  // {
+  //   id: "xai/grok-code-fast-1-thinking",
+  //   name: "Grok Code Fast",
+  //   provider: "reasoning",
+  //   description: "Reasoning optimized for code",
+  // },
 ];
 
 // Group models by provider for UI

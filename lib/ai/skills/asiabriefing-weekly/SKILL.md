@@ -7,7 +7,7 @@ description: Retrieves recent Asia Briefing posts (all regions/sub-sites, any to
 
 从 Asia Briefing 及子站检索**最近 5 天（或本周）**的新文章，汇总成清单并通过 **Artifact 文档**展示，并延伸销售向洞察。
 
-**信息源约定**：仅使用 Asia Briefing 及子站（见 trusted-sources 3.3）。检索时须将范围限制在下列域名内，不得使用其他外网。
+**信息源约定**：仅使用 Asia Briefing 及子站,[reference-domains.md](reference-domains.md) 。检索时须将范围限制在下列域名内，不得使用其他外网。
 
 ---
 
@@ -21,8 +21,9 @@ description: Retrieves recent Asia Briefing posts (all regions/sub-sites, any to
 
 ### 2. 获取每篇要点
 
-- 对列表中的每篇文章 URL 使用 `mcp_web_fetch` 抓取正文（或使用 Tavily extract）。
-- 提炼：标题、发布日期（若有）、3～5 条要点或一段简短总结（2～4 句）。
+- 对列表中的每篇文章 URL 使用 `Tavily extract` 抓取正文。
+- **提炼**：标题、发布日期（若有）、3～5 条要点或一段简短总结（3～5 句）。
+- **输出**：区分「来自 Asia Briefing（日期/URL）」与自己的推断；引用格式示例：「[文章标题](URL)，Asia Briefing / XX Briefing，日期」。
 
 ### 3. 撰写销售延伸洞察
 
@@ -37,7 +38,7 @@ description: Retrieves recent Asia Briefing posts (all regions/sub-sites, any to
 
 ### 4. 创建 Artifact 文档
 
-**必须使用 `createDocument` 工具**来展示结果：
+**必须使用 `createDocument` 工具**来展示结果（只创建1次）：
 
 - **工具调用**：`createDocument({ title: "Asia Briefing 本周新文汇总 (YYYY-MM-DD)", kind: "text" })`
 - **kind 参数**：必须设为 `"text"`（Markdown 格式文档）
@@ -73,9 +74,9 @@ www.middleeastbriefing.com
 
 ### [文章标题](原始链接)
 
-- **来源**：XX Briefing（若可识别子站）
+- **来源**：XX Briefing（若识别是子站）
 - **日期**：（若有）
-- **要点与总结**：（3～5 条或 2～4 句）
+- **要点与总结**：（3～5 条或 3～5 句）
 - **销售延伸**：（可选）关注方向 / 客户类型 / 潜在商机 / 话术建议等
 
 （重复以上块，直至本周检索到的文章全部列出。）
@@ -97,5 +98,4 @@ www.middleeastbriefing.com
 
 ## 五、与其它 Skill 的配合
 
-- **trusted-sources**：本技能仅从 Asia Briefing 及子站获取信息，符合 trusted-sources 对外部源的规定；引用格式见 trusted-sources 的 reference-asiabriefing。
 - **Artifacts**：使用 `createDocument` 工具创建文档，用户可在界面右侧看到格式化的 Markdown 内容，并可下载、编辑或分享。
