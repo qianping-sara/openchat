@@ -42,38 +42,53 @@ export const getWeather = tool({
   }),
   needsApproval: true,
   execute: async (input) => {
-    let latitude: number;
-    let longitude: number;
+    try {
+      let latitude: number;
+      let longitude: number;
 
-    if (input.city) {
-      const coords = await geocodeCity(input.city);
-      if (!coords) {
+      if (input.city) {
+        const coords = await geocodeCity(input.city);
+        if (!coords) {
+          return {
+            error: `Could not find coordinates for "${input.city}". Please check the city name.`,
+          };
+        }
+        latitude = coords.latitude;
+        longitude = coords.longitude;
+      } else if (
+        input.latitude !== undefined &&
+        input.longitude !== undefined
+      ) {
+        latitude = input.latitude;
+        longitude = input.longitude;
+      } else {
         return {
-          error: `Could not find coordinates for "${input.city}". Please check the city name.`,
+          error:
+            "Please provide either a city name or both latitude and longitude coordinates.",
         };
       }
-      latitude = coords.latitude;
-      longitude = coords.longitude;
-    } else if (input.latitude !== undefined && input.longitude !== undefined) {
-      latitude = input.latitude;
-      longitude = input.longitude;
-    } else {
+
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+      );
+
+      if (!response.ok) {
+        return {
+          error: `Failed to fetch weather data: ${response.statusText}`,
+        };
+      }
+
+      const weatherData = await response.json();
+
+      if ("city" in input) {
+        weatherData.cityName = input.city;
+      }
+
+      return weatherData;
+    } catch (error) {
       return {
-        error:
-          "Please provide either a city name or both latitude and longitude coordinates.",
+        error: `Failed to get weather: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
-
-    const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
-    );
-
-    const weatherData = await response.json();
-
-    if ("city" in input) {
-      weatherData.cityName = input.city;
-    }
-
-    return weatherData;
   },
 });
