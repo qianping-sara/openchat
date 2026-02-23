@@ -250,6 +250,63 @@ function PureArtifact({
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
 
+  // Resizable panel state - default to 40% for left panel (4:6 ratio)
+  const [leftPanelWidth, setLeftPanelWidth] = useState<number>(
+    windowWidth ? windowWidth * 0.4 : 400
+  );
+  const [isResizing, setIsResizing] = useState(false);
+  const [hasUserResized, setHasUserResized] = useState(false);
+
+  // Update left panel width when window resizes (only if user hasn't manually resized)
+  useEffect(() => {
+    if (windowWidth && !isResizing && !hasUserResized) {
+      setLeftPanelWidth(windowWidth * 0.4);
+    }
+  }, [windowWidth, isResizing, hasUserResized]);
+
+  // Reset user resize flag when artifact panel is closed
+  useEffect(() => {
+    if (!artifact.isVisible) {
+      setHasUserResized(false);
+    }
+  }, [artifact.isVisible]);
+
+  const minWidth = 300;
+  const maxWidth = windowWidth ? windowWidth * 0.7 : 800;
+
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback(
+    (e: MouseEvent) => {
+      if (isResizing && windowWidth) {
+        const newWidth = e.clientX;
+        const calculatedMaxWidth = windowWidth * 0.7;
+        if (newWidth >= minWidth && newWidth <= calculatedMaxWidth) {
+          setLeftPanelWidth(newWidth);
+          setHasUserResized(true);
+        }
+      }
+    },
+    [isResizing, windowWidth]
+  );
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener("mousemove", resize);
+      window.addEventListener("mouseup", stopResizing);
+      return () => {
+        window.removeEventListener("mousemove", resize);
+        window.removeEventListener("mouseup", stopResizing);
+      };
+    }
+  }, [isResizing, resize, stopResizing]);
+
   const artifactDefinition = artifactDefinitions.find(
     (definition) => definition.kind === artifact.kind
   );
@@ -298,14 +355,17 @@ function PureArtifact({
                 opacity: 1,
                 x: 0,
                 scale: 1,
-                transition: {
-                  delay: 0.1,
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                },
+                width: leftPanelWidth,
+                transition: isResizing
+                  ? { duration: 0 }
+                  : {
+                      delay: 0.1,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30,
+                    },
               }}
-              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+              className="relative h-dvh shrink-0 bg-muted dark:bg-background"
               exit={{
                 opacity: 0,
                 x: 0,
@@ -313,14 +373,16 @@ function PureArtifact({
                 transition: { duration: 0 },
               }}
               initial={{ opacity: 0, x: 10, scale: 1 }}
+              style={{ width: leftPanelWidth }}
             >
               <AnimatePresence>
                 {!isCurrentVersion && (
                   <motion.div
-                    animate={{ opacity: 1 }}
-                    className="absolute top-0 left-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
+                    animate={{ opacity: 1, width: leftPanelWidth }}
+                    className="absolute top-0 left-0 z-50 h-dvh bg-zinc-900/50"
                     exit={{ opacity: 0 }}
                     initial={{ opacity: 0 }}
+                    style={{ width: leftPanelWidth }}
                   />
                 )}
               </AnimatePresence>
@@ -359,6 +421,22 @@ function PureArtifact({
             </motion.div>
           )}
 
+          {/* Resizable divider */}
+          {!isMobile && (
+            <div
+              aria-label="Resize panels"
+              aria-orientation="vertical"
+              aria-valuemax={maxWidth}
+              aria-valuemin={minWidth}
+              aria-valuenow={leftPanelWidth}
+              className="fixed top-0 z-50 h-dvh w-1 cursor-col-resize bg-transparent hover:bg-blue-500/50 active:bg-blue-500"
+              onMouseDown={startResizing}
+              role="separator"
+              style={{ left: leftPanelWidth }}
+              tabIndex={0}
+            />
+          )}
+
           <motion.div
             animate={
               isMobile
@@ -379,20 +457,22 @@ function PureArtifact({
                   }
                 : {
                     opacity: 1,
-                    x: 400,
+                    x: leftPanelWidth,
                     y: 0,
                     height: windowHeight,
                     width: windowWidth
-                      ? windowWidth - 400
+                      ? windowWidth - leftPanelWidth
                       : "calc(100dvw-400px)",
                     borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 30,
-                      duration: 0.8,
-                    },
+                    transition: isResizing
+                      ? { duration: 0 }
+                      : {
+                          delay: 0,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                          duration: 0.8,
+                        },
                   }
             }
             className="fixed flex h-dvh flex-col overflow-y-scroll border-zinc-200 bg-background md:border-l dark:border-zinc-700 dark:bg-muted"

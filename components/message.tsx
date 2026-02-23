@@ -18,6 +18,32 @@ import {
 } from "./elements/tool";
 import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
+
+/** Sequential Thinking MCP returns { thoughtNumber, totalThoughts, nextThoughtNeeded }. Show a short summary so "Completed" isn't misleading when nextThoughtNeeded is true. */
+function SequentialThinkingSummary({ output }: { output: unknown }) {
+  if (
+    output == null ||
+    typeof output !== "object" ||
+    !("thoughtNumber" in output) ||
+    !("totalThoughts" in output) ||
+    !("nextThoughtNeeded" in output)
+  ) {
+    return null;
+  }
+  const o = output as {
+    thoughtNumber: number;
+    totalThoughts: number;
+    nextThoughtNeeded: boolean;
+  };
+  return (
+    <p className="mb-2 border-b border-muted pb-2 text-muted-foreground text-xs">
+      Thought {o.thoughtNumber}/{o.totalThoughts}
+      {" · "}
+      Next thought needed: {o.nextThoughtNeeded ? "yes" : "no"}
+    </p>
+  );
+}
+
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
@@ -339,6 +365,188 @@ const PurePreviewMessage = ({
                     )}
                   </ToolContent>
                 </Tool>
+              );
+            }
+
+            // MCP / dynamic tools: SDK sends type "dynamic-tool" with toolName, not "tool-xxx"
+            if (type === "dynamic-tool") {
+              const dynamicPart = part as {
+                toolCallId: string;
+                toolName: string;
+                state: string;
+                input?: unknown;
+                output?: unknown;
+                errorText?: string;
+              };
+              const { toolCallId, toolName, state: toolState } = dynamicPart;
+              const displayState = toolState as
+                | "input-streaming"
+                | "input-available"
+                | "approval-requested"
+                | "approval-responded"
+                | "output-available"
+                | "output-error"
+                | "output-denied";
+              const headerType = `tool-${toolName}`;
+
+              return (
+                <div className="w-[min(100%,450px)]" key={key}>
+                  <Tool defaultOpen={false}>
+                    <ToolHeader
+                      state={displayState}
+                      type={headerType as `tool-${string}`}
+                    />
+                    <ToolContent>
+                      {(displayState === "input-available" ||
+                        displayState === "approval-requested" ||
+                        displayState === "approval-responded") &&
+                        dynamicPart.input !== undefined && (
+                          <ToolInput input={dynamicPart.input} />
+                        )}
+                      {displayState === "output-available" &&
+                        dynamicPart.output !== undefined && (
+                          <ToolOutput
+                            errorText={undefined}
+                            output={
+                              <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-md bg-muted/50 p-3">
+                                <SequentialThinkingSummary
+                                  output={dynamicPart.output}
+                                />
+                                {typeof dynamicPart.output === "string" ? (
+                                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                    {dynamicPart.output}
+                                  </pre>
+                                ) : (
+                                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                    {JSON.stringify(
+                                      dynamicPart.output,
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
+                                )}
+                              </div>
+                            }
+                          />
+                        )}
+                      {displayState === "output-error" && (
+                        <ToolOutput
+                          errorText={
+                            dynamicPart.errorText ??
+                            (dynamicPart.output &&
+                            typeof dynamicPart.output === "object" &&
+                            "error" in dynamicPart.output
+                              ? String(
+                                  (dynamicPart.output as { error: unknown })
+                                    .error
+                                )
+                              : "Tool failed")
+                          }
+                          output={null}
+                        />
+                      )}
+                      {displayState === "output-denied" && (
+                        <div className="px-4 py-3 text-muted-foreground text-sm">
+                          Tool execution was denied.
+                        </div>
+                      )}
+                    </ToolContent>
+                  </Tool>
+                </div>
+              );
+            }
+
+            // Generic fallback for static tool-* types not explicitly handled above
+            // Skip tools that are already handled specifically (createDocument, updateDocument, etc.)
+            const isGenericTool =
+              type.startsWith("tool-") &&
+              !["tool-createDocument", "tool-updateDocument"].includes(
+                type as string
+              );
+
+            if (isGenericTool) {
+              const genericPart = part as unknown as {
+                toolCallId: string;
+                state: string;
+                input?: unknown;
+                output?: unknown;
+                errorText?: string;
+              };
+              const { toolCallId, state: toolState } = genericPart;
+              const displayState = toolState as
+                | "input-streaming"
+                | "input-available"
+                | "approval-requested"
+                | "approval-responded"
+                | "output-available"
+                | "output-error"
+                | "output-denied";
+
+              return (
+                <div className="w-[min(100%,450px)]" key={toolCallId}>
+                  <Tool defaultOpen={false}>
+                    <ToolHeader
+                      state={displayState}
+                      type={type as `tool-${string}`}
+                    />
+                    <ToolContent>
+                      {(displayState === "input-available" ||
+                        displayState === "approval-requested" ||
+                        displayState === "approval-responded") &&
+                        genericPart.input !== undefined && (
+                          <ToolInput input={genericPart.input} />
+                        )}
+                      {displayState === "output-available" &&
+                        genericPart.output !== undefined && (
+                          <ToolOutput
+                            errorText={undefined}
+                            output={
+                              <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-md bg-muted/50 p-3">
+                                <SequentialThinkingSummary
+                                  output={genericPart.output}
+                                />
+                                {typeof genericPart.output === "string" ? (
+                                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                    {genericPart.output}
+                                  </pre>
+                                ) : (
+                                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                    {JSON.stringify(
+                                      genericPart.output,
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
+                                )}
+                              </div>
+                            }
+                          />
+                        )}
+                      {displayState === "output-error" && (
+                        <ToolOutput
+                          errorText={
+                            genericPart.errorText
+                              ? String(genericPart.errorText)
+                              : genericPart.output &&
+                                  typeof genericPart.output === "object" &&
+                                  "error" in genericPart.output
+                                ? String(
+                                    (genericPart.output as { error: unknown })
+                                      .error
+                                  )
+                                : "Tool failed"
+                          }
+                          output={null}
+                        />
+                      )}
+                      {displayState === "output-denied" && (
+                        <div className="px-4 py-3 text-muted-foreground text-sm">
+                          Tool execution was denied.
+                        </div>
+                      )}
+                    </ToolContent>
+                  </Tool>
+                </div>
               );
             }
 
