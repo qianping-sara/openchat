@@ -44,7 +44,7 @@ function PureEditor({
   useEffect(() => {
     if (containerRef.current && !editorRef.current) {
       const state = EditorState.create({
-        doc: buildDocumentFromContent(content),
+        doc: buildDocumentFromContent(content || ""),
         plugins: [
           ...exampleSetup({ schema: documentSchema, menuBar: false }),
           inputRules({
@@ -73,8 +73,8 @@ function PureEditor({
       }
     };
     // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
-  }, [content]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (editorRef.current) {

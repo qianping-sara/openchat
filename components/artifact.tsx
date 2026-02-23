@@ -115,7 +115,12 @@ function PureArtifact({
         setCurrentVersionIndex(documents.length - 1);
         setArtifact((currentArtifact) => ({
           ...currentArtifact,
-          content: mostRecentDocument.content ?? "",
+          // Only update content if the loaded content is not empty
+          // This prevents overwriting streaming content with empty content during the loading window
+          content:
+            mostRecentDocument.content && mostRecentDocument.content.length > 0
+              ? mostRecentDocument.content
+              : currentArtifact.content,
         }));
       }
     }
