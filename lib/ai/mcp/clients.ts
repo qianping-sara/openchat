@@ -86,10 +86,13 @@ export async function createTavilyMCPClient(): Promise<MCPClient | null> {
 /**
  * Initialize all MCP clients
  * Returns an array of successfully initialized clients
+ *
+ * Note: Neo4j MCP is disabled - using neo4j-driver directly instead for better
+ * performance in serverless environments. See lib/db/neo4j.ts and lib/ai/tools/neo4j-tools.ts
  */
 export async function initializeMCPClients(): Promise<MCPClient[]> {
   const clients = await Promise.all([
-    createNeo4jMCPClient(),
+    // createNeo4jMCPClient(), // Disabled - using neo4j-driver directly
     createTavilyMCPClient(),
   ]);
 

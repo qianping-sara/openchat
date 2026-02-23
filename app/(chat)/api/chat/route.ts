@@ -17,6 +17,7 @@ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import { neo4jTools } from "@/lib/ai/tools/neo4j-tools";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
@@ -174,11 +175,12 @@ export async function POST(request: Request) {
         // Load MCP tools
         const { tools: mcpTools, clients: mcpClients } = await getMCPTools();
 
-        // Combine MCP tools, built-in tools, skill tool, and bash tools
+        // Combine MCP tools, built-in tools, skill tool, bash tools, and Neo4j tools
         const allTools = {
           ...(skillTool ? { skill: skillTool } : {}),
           ...(bashTools || {}),
           ...mcpTools,
+          ...neo4jTools,
           getWeather,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
