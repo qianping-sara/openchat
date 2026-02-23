@@ -1,6 +1,6 @@
 /**
  * Neo4j Read-Only AI Tools
- * 
+ *
  * Provides AI tools for querying Neo4j database.
  * All tools are READ-ONLY for security.
  */
@@ -60,7 +60,10 @@ export const readCypher = tool({
   execute: async ({ query, params = {} }) => {
     try {
       // The executeReadQuery function will validate that the query is read-only
-      const results = await executeReadQuery(query, params);
+      const results = await executeReadQuery(
+        query,
+        params as Record<string, any>
+      );
 
       return {
         success: true,
@@ -173,4 +176,3 @@ export const neo4jTools = {
   listGdsProcedures,
   getDatabaseStats,
 };
-

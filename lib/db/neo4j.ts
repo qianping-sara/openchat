@@ -113,7 +113,7 @@ function validateReadOnlyQuery(cypher: string): void {
  */
 export async function executeReadQuery<T = any>(
   cypher: string,
-  params?: Record<string, any>
+  params?: any
 ): Promise<T[]> {
   // Security check: validate read-only
   validateReadOnlyQuery(cypher);
@@ -126,7 +126,8 @@ export async function executeReadQuery<T = any>(
 
   try {
     const result = await session.executeRead(async (tx) => {
-      const res = await tx.run(cypher, params || {});
+      // Cast params to any to avoid Neo4j driver type issues
+      const res = await tx.run(cypher, (params || {}) as any);
       return res.records;
     });
 
