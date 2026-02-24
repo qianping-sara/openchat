@@ -12,13 +12,13 @@ import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { cleanupMCPClients, getMCPTools } from "@/lib/ai/mcp/tools";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { neo4jTools } from "@/lib/ai/tools/neo4j-tools";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
+import { tavilyTools } from "@/lib/ai/tools/tavily-tools";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
@@ -39,7 +39,7 @@ import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
-// Tool-loop (MCP, skills) can run multiple steps in one request; allow enough time.
+// Tool-loop (Tavily, skills, bash) can run multiple steps in one request; allow enough time.
 export const maxDuration = 300;
 
 function getStreamContext() {
@@ -193,14 +193,11 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Load MCP tools
-        const { tools: mcpTools, clients: mcpClients } = await getMCPTools();
-
-        // Combine MCP tools, built-in tools, skill tool, bash tools, and Neo4j tools
+        // Combine all tools: Tavily, built-in tools, skill tool, bash tools, and Neo4j tools
         const allTools = {
           ...(skillTool ? { skill: skillTool } : {}),
           ...(bashTools || {}),
-          ...mcpTools,
+          ...tavilyTools,
           ...neo4jTools,
           getWeather,
           createDocument: createDocument({ session, dataStream }),
@@ -213,7 +210,6 @@ export async function POST(request: Request) {
           // tool-result/tool-error so the next step runs. The SDK passes tool results back
           // into context (toResponseMessages + streamStep), so the model sees prior thoughts.
           // stopWhen: stepCountIs(20) allows up to 20 steps (e.g. Sequential Thinking 5/5).
-          // MCP tools are wrapped to never reject so stepToolOutputs always gets an entry.
           const agent = new ToolLoopAgent({
             model: getLanguageModel(selectedChatModel),
             instructions:
@@ -273,12 +269,8 @@ export async function POST(request: Request) {
             delta: `\n\nSomething went wrong and the response stopped: ${message}`,
           });
           dataStream.write({ type: "text-end", id: errorId });
-        } finally {
-          // Run cleanup in background so execute() can return and stream stays responsive.
-          cleanupMCPClients(mcpClients).catch((err) => {
-            console.error("Error during MCP client cleanup:", err);
-          });
         }
+        // Note: No cleanup needed for Tavily tools (direct API calls, no persistent connections)
       },
       generateId: generateUUID,
       onFinish: async ({ messages: finishedMessages }) => {

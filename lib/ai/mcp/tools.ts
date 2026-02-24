@@ -1,3 +1,10 @@
+/**
+ * @deprecated This file is deprecated. Tavily now uses direct API integration via @tavily/ai-sdk.
+ * See lib/ai/tools/tavily-tools.ts for the new implementation.
+ *
+ * This file is kept for reference only and should not be used in new code.
+ */
+
 import type { MCPClient } from "@ai-sdk/mcp";
 import { closeMCPClients, initializeMCPClients } from "./clients";
 

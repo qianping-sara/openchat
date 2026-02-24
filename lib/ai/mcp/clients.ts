@@ -1,8 +1,16 @@
+/**
+ * @deprecated This file is deprecated. Tavily now uses direct API integration via @tavily/ai-sdk.
+ * See lib/ai/tools/tavily-tools.ts for the new implementation.
+ *
+ * This file is kept for reference only and should not be used in new code.
+ */
+
 import type { MCPClient } from "@ai-sdk/mcp";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { Experimental_StdioMCPTransport } from "@ai-sdk/mcp/mcp-stdio";
 
 /**
+ * @deprecated Use lib/ai/tools/tavily-tools.ts instead
  * Initialize Tavily MCP client for web search
  * Uses stdio transport with npx to run the latest tavily-mcp package
  */
