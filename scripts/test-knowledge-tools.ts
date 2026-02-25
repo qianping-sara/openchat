@@ -26,12 +26,7 @@ async function testKnowledgeTools() {
     // Test 1: List all knowledge files
     console.log("📋 Test 1: List all knowledge files");
     console.log("Calling listKnowledgeFiles.execute()...");
-    const listResult = await knowledgeTools.listKnowledgeFiles.execute?.({});
-
-    if (!listResult) {
-      console.error("❌ listKnowledgeFiles.execute is not available");
-      return;
-    }
+    const listResult = await knowledgeTools.listKnowledgeFiles.execute({}, {});
 
     console.log("Result:", JSON.stringify(listResult, null, 2));
     console.log("");
@@ -46,14 +41,12 @@ async function testKnowledgeTools() {
     // Test 2: Search for files with keyword "越南"
     console.log('🔍 Test 2: Search for files with keyword "越南"');
     console.log('Calling searchKnowledgeFiles.execute({ keyword: "越南" })...');
-    const searchResult = await knowledgeTools.searchKnowledgeFiles.execute?.({
-      keyword: "越南",
-    });
-
-    if (!searchResult) {
-      console.error("❌ searchKnowledgeFiles.execute is not available");
-      return;
-    }
+    const searchResult = await knowledgeTools.searchKnowledgeFiles.execute(
+      {
+        keyword: "越南",
+      },
+      {}
+    );
 
     console.log("Result:", JSON.stringify(searchResult, null, 2));
     console.log("");
@@ -72,14 +65,12 @@ async function testKnowledgeTools() {
       console.log(
         `Calling readKnowledgeFile.execute({ fileName: "${firstFile.name}" })...`
       );
-      const readResult = await knowledgeTools.readKnowledgeFile.execute?.({
-        fileName: firstFile.name,
-      });
-
-      if (!readResult) {
-        console.error("❌ readKnowledgeFile.execute is not available");
-        return;
-      }
+      const readResult = await knowledgeTools.readKnowledgeFile.execute(
+        {
+          fileName: firstFile.name,
+        },
+        {}
+      );
 
       if (!readResult.success) {
         console.error("❌ Read failed:", readResult.error);
