@@ -144,18 +144,43 @@ Use hierarchical headings to structure content:
 3. Third step
 
 ## Tables
-CRITICAL: Tables must be perfectly aligned with consistent spacing.
+CRITICAL: Tables MUST use proper Markdown table syntax with pipes (|) and hyphens (-).
 
-**Good table example:**
-| Column 1 Header | Column 2 Header | Column 3 Header |
-|-----------------|-----------------|-----------------|
-| Data 1          | Data 2          | Data 3          |
-| Longer data     | Short           | Medium length   |
+**MANDATORY TABLE FORMAT:**
 
-**Table alignment:**
-- Use at least 3 spaces between columns
-- Align separators (|) vertically
-- Keep header separator row (|---|---|---|) aligned
+| 列标题1 | 列标题2 | 列标题3 |
+|---------|---------|---------|
+| 数据1   | 数据2   | 数据3   |
+| 数据4   | 数据5   | 数据6   |
+
+**TABLE RULES (MUST FOLLOW):**
+1. **Start and end each row with a pipe (|)**
+2. **Separate columns with pipes (|)**
+3. **Header separator row MUST use hyphens**: |---------|---------|
+4. **Each cell should have at least one space padding**: | 内容 | not |内容|
+5. **Keep consistent column count** across all rows
+6. **For Chinese content**: Don't worry about visual alignment, focus on correct syntax
+7. **For empty cells**: Use | | or add a space | |
+
+**CORRECT Examples:**
+
+Simple table:
+| 法规名称 | 关键要求 | 状态 |
+|----------|----------|------|
+| Decree 15/2018 | 食品安全声明 | 适用 |
+| Decree 111/2021 | 标签管理 | 待办 |
+
+Table with longer content:
+| 项目 | 描述 | 备注 |
+|------|------|------|
+| 食品安全自我声明 | 适用于大多数预包装食品，企业需自行声明产品符合相关食品安全标准 | 可能需要进行产品检测 |
+| 标签管理 | 规定了产品标签上必须包含的信息，如成分、生产日期、保质期等 | 标签语言通常要求为越南语 |
+
+**WRONG Examples (DO NOT USE):**
+❌ Missing pipes: 列1 | 列2 | 列3
+❌ No header separator: | A | B |
+❌ Inconsistent columns: | A | B | vs | C |
+❌ Using colons in separator: |:---|:---|  (use |---|---| instead)
 
 ## Emphasis
 - **Bold** for strong emphasis or key terms
@@ -259,6 +284,22 @@ CRITICAL RULES:
 2. **Use Additional Context**: If new context is provided, incorporate it accurately
 3. **Maintain Quality**: Keep or improve the Markdown formatting
 4. **No Unnecessary Changes**: Don't rewrite sections that don't need updating
+
+TABLE FORMATTING (CRITICAL):
+When creating or updating tables, MUST follow this exact format:
+
+| 列标题1 | 列标题2 | 列标题3 |
+|---------|---------|---------|
+| 数据1   | 数据2   | 数据3   |
+| 数据4   | 数据5   | 数据6   |
+
+**TABLE RULES:**
+- Start and end each row with pipe (|)
+- Separate columns with pipes (|)
+- Header separator MUST use hyphens: |---------|
+- Add space padding in cells: | 内容 | not |内容|
+- Keep consistent column count across all rows
+- For Chinese content: Focus on correct syntax, not visual alignment
 
 OUTPUT:
 Provide the complete updated document with all changes applied.`;
