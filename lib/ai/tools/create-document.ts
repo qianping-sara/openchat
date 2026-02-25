@@ -15,13 +15,34 @@ type CreateDocumentProps = {
 
 export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
   tool({
-    description:
-      "Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.",
+    description: `Create a document for writing or content creation activities.
+This tool will generate the contents of the document based on the title, kind, and optional context.
+
+You should provide:
+- title: A clear, descriptive title for the document
+- kind: The type of document (text, code, or sheet)
+- context: (OPTIONAL) Any background knowledge, research findings, or relevant information that should inform the document content
+- requirements: (OPTIONAL) Specific requirements, constraints, or focus areas for the document
+
+IMPORTANT: If you have gathered information through knowledge search or other tools, pass that information in the 'context' parameter.
+If the user has specific requirements or focus areas, pass them in the 'requirements' parameter.`,
     inputSchema: z.object({
-      title: z.string(),
-      kind: z.enum(artifactKinds),
+      title: z.string().describe("The title of the document"),
+      kind: z.enum(artifactKinds).describe("The type of document to create"),
+      context: z
+        .string()
+        .optional()
+        .describe(
+          "Background knowledge, research findings, or relevant information that should inform the document content. Include any information you gathered from knowledge search or other sources."
+        ),
+      requirements: z
+        .string()
+        .optional()
+        .describe(
+          "Specific requirements, constraints, or focus areas for the document. Include user's detailed requests or preferences."
+        ),
     }),
-    execute: async ({ title, kind }) => {
+    execute: async ({ title, kind, context, requirements }) => {
       const id = generateUUID();
 
       dataStream.write({
@@ -60,6 +81,8 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
       await documentHandler.onCreateDocument({
         id,
         title,
+        context,
+        requirements,
         dataStream,
         session,
       });

@@ -6,12 +6,22 @@ import { createDocumentHandler } from "@/lib/artifacts/server";
 
 export const codeDocumentHandler = createDocumentHandler<"code">({
   kind: "code",
-  onCreateDocument: async ({ title, dataStream }) => {
+  onCreateDocument: async ({ title, context, requirements, dataStream }) => {
     let draftContent = "";
+
+    let systemPrompt = codePrompt;
+
+    if (context) {
+      systemPrompt += `\n\nBackground Knowledge and Context:\n${context}`;
+    }
+
+    if (requirements) {
+      systemPrompt += `\n\nSpecific Requirements:\n${requirements}`;
+    }
 
     const { fullStream } = streamObject({
       model: getArtifactModel("code"),
-      system: codePrompt,
+      system: systemPrompt,
       prompt: title,
       schema: z.object({
         code: z.string(),
@@ -39,12 +49,18 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
 
     return draftContent;
   },
-  onUpdateDocument: async ({ document, description, dataStream }) => {
+  onUpdateDocument: async ({ document, description, context, dataStream }) => {
     let draftContent = "";
+
+    let systemPrompt = updateDocumentPrompt(document.content, "code");
+
+    if (context) {
+      systemPrompt += `\n\nAdditional Context:\n${context}`;
+    }
 
     const { fullStream } = streamObject({
       model: getArtifactModel("code"),
-      system: updateDocumentPrompt(document.content, "code"),
+      system: systemPrompt,
       prompt: description,
       schema: z.object({
         code: z.string(),
