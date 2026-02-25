@@ -6,7 +6,11 @@
  */
 
 import dotenv from "dotenv";
-import { knowledgeTools } from "../lib/ai/tools/knowledge-tools";
+import {
+  listKnowledgeFiles,
+  readKnowledgeFile,
+  searchKnowledgeFiles,
+} from "../lib/ai/tools/knowledge-tools";
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
@@ -26,7 +30,14 @@ async function testKnowledgeTools() {
     // Test 1: List all knowledge files
     console.log("📋 Test 1: List all knowledge files");
     console.log("Calling listKnowledgeFiles.execute()...");
-    const listResult = await knowledgeTools.listKnowledgeFiles.execute({}, {});
+    // @ts-expect-error - Tool execute function exists at runtime
+    const listResult: any = await listKnowledgeFiles.execute(
+      {},
+      {
+        toolCallId: "test-1",
+        messages: [],
+      }
+    );
 
     console.log("Result:", JSON.stringify(listResult, null, 2));
     console.log("");
@@ -41,11 +52,15 @@ async function testKnowledgeTools() {
     // Test 2: Search for files with keyword "越南"
     console.log('🔍 Test 2: Search for files with keyword "越南"');
     console.log('Calling searchKnowledgeFiles.execute({ keyword: "越南" })...');
-    const searchResult = await knowledgeTools.searchKnowledgeFiles.execute(
+    // @ts-expect-error - Tool execute function exists at runtime
+    const searchResult: any = await searchKnowledgeFiles.execute(
       {
         keyword: "越南",
       },
-      {}
+      {
+        toolCallId: "test-2",
+        messages: [],
+      }
     );
 
     console.log("Result:", JSON.stringify(searchResult, null, 2));
@@ -65,11 +80,15 @@ async function testKnowledgeTools() {
       console.log(
         `Calling readKnowledgeFile.execute({ fileName: "${firstFile.name}" })...`
       );
-      const readResult = await knowledgeTools.readKnowledgeFile.execute(
+      // @ts-expect-error - Tool execute function exists at runtime
+      const readResult: any = await readKnowledgeFile.execute(
         {
           fileName: firstFile.name,
         },
-        {}
+        {
+          toolCallId: "test-3",
+          messages: [],
+        }
       );
 
       if (!readResult.success) {
