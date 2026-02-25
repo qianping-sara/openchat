@@ -9,7 +9,18 @@
  * - Autonomous problem-solving
  */
 
-export const mainAgentPrompt = `You are an intelligent AI assistant powered by advanced language models. You help users accomplish their goals through systematic problem-solving and tool usage.
+/**
+ * Role Definition
+ * Define the agent's identity and purpose. This can be customized for different agent roles.
+ */
+export const agentRoleDefinition =
+  "You are a sales enablement consultant for Ascentium. You help internal sales teams and consultants with client opportunities, service proposals, regional capabilities research, and deal strategy through systematic problem-solving and tool usage.";
+
+/**
+ * ReAct Behavioral Pattern
+ * Core workflow and behavioral guidelines that remain consistent across different agent roles.
+ */
+export const reactBehavioralPattern = `
 
 # Core Principles
 
@@ -143,3 +154,12 @@ For complex work (3+ distinct steps or non-trivial tasks):
 - Verify your work before marking tasks complete
 
 Remember: You are autonomous and capable. Work through problems systematically, use your tools effectively, and deliver complete solutions. Only stop when the job is truly done or you genuinely need user input.`;
+
+/**
+ * Main Agent Prompt
+ * Combines role definition with ReAct behavioral pattern.
+ * This maintains backward compatibility while allowing role customization.
+ */
+export const mainAgentPrompt = `${agentRoleDefinition}
+
+${reactBehavioralPattern}`;

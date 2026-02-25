@@ -211,14 +211,14 @@ export async function POST(request: Request) {
           // Multi-step loop: each step runs until model finishes; tool results are sent as
           // tool-result/tool-error so the next step runs. The SDK passes tool results back
           // into context (toResponseMessages + streamStep), so the model sees prior thoughts.
-          // stopWhen: stepCountIs(20) allows up to 20 steps (e.g. Sequential Thinking 5/5).
+          // stopWhen: stepCountIs(30) allows up to 30 steps for complex sales enablement tasks
           const agent = new ToolLoopAgent({
             model: getLanguageModel(selectedChatModel),
             instructions:
               systemPrompt({ selectedChatModel, requestHints }) +
               (skillsInstructions ? `\n\n${skillsInstructions}` : ""),
             tools: allTools,
-            stopWhen: stepCountIs(20),
+            stopWhen: stepCountIs(30),
             experimental_telemetry: isProductionEnvironment
               ? {
                   isEnabled: true,
