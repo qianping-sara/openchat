@@ -1,6 +1,6 @@
 ---
 name: trusted-sources
-description: Single entry for all knowledge and information retrieval in this workspace. Defines three trusted sources—local Knowledge folder, Neo4j graph, and Asia Briefing (and sub-sites)—how to use them alone or combined, and mandatory attribution and self-check rules. Use whenever the user needs any internal or external information lookup, fact-checking, or research from these sources.
+description: Single entry for all knowledge and information retrieval in this workspace. Defines three trusted sources — Blob stored Knowledge folder, Neo4j graph, and Asia Briefing (and sub-sites) — how to use them alone or combined, and mandatory attribution and self-check rules. Use whenever the user needs any internal or external information lookup, fact-checking, or research from these sources.
 ---
 
 # 可信知识源检索（Trusted Sources）
@@ -13,7 +13,7 @@ description: Single entry for all knowledge and information retrieval in this wo
 
 | 来源                    | 说明                                                                                                                                                | 用途概要                                                         |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **本地 Knowledge**      | 工作区根目录下 `Knowledge/` 文件夹；内部文档、案例、区域/行业研究、产品说明、会议纪要等。                                                           | 内部表述、历史做法、可复用结构与话术。                           |
+| **Blob Knowledge**      | Blob存储中的 `Knowledge/` 文件夹；内部文档、案例、区域/行业研究、产品说明、会议纪要等。                                                             | 内部表述、历史做法、可复用结构与话术。                           |
 | **Neo4j 图**            | 图数据库中的实体与关系（如 Region、IndustrialZone、Dimension、ServiceOffering、ServiceProvider、Credential 等）；schema 与数据会持续演进。          | 区域/园区、服务与维度、供应商与资质、需求–供给匹配等结构化查询。 |
 | **外部：Asia Briefing** | Asia Briefing 及子站（asiabriefing.com、china-briefing.com、vietnam-briefing.com、india-briefing.com、aseanbriefing.com、middleeastbriefing.com）。 | 亚洲各国税务、法律、劳工、贸易、营商环境与政策更新等可署名引用。 |
 
@@ -46,10 +46,17 @@ description: Single entry for all knowledge and information retrieval in this wo
 
 ### 3.1 本地 Knowledge
 
-- **找文件**：`Glob`（如 `Knowledge/**/*`）按路径/文件名/修改时间推理；或用 `Grep` 在 `Knowledge/` 下按关键词找真正包含该词的文件。可先列表再 grep 组合。
-- **锁定章节**：对候选文件用 `Read`，先看结构（目录、标题），再用 offset/limit 精读相关小节。
-- **输出**：关键结论必须标注来源，例如「《文档名》（Knowledge/…/xxx.md）第 X 节 / 章节名」。
-- 更多发现流程与引用约定见 [reference-knowledge.md](reference-knowledge.md)。
+- **存储方式**：Knowledge 文件存储在 Vercel Blob Storage，通过专用的 Knowledge 工具访问。
+- **可用工具**（三个专用工具）：
+  - `listKnowledgeFiles` — 列出所有可用的知识文件
+  - `searchKnowledgeFiles` — 按关键词搜索文件名（如 "越南"、"泰国"、"园区"）
+  - `readKnowledgeFile` — 读取特定文件的完整内容
+- **推荐流程**：
+  1. 先用 `searchKnowledgeFiles` 按主题关键词查找相关文件
+  2. 或用 `listKnowledgeFiles` 浏览所有可用文件
+  3. 确定文件后用 `readKnowledgeFile` 读取完整内容
+- **输出**：关键结论必须标注来源，例如「《文件名.md》第 X 节 / 章节名」。
+- 更多工具使用细节与引用约定见 [reference-knowledge.md](reference-knowledge.md)。
 
 ### 3.2 Neo4j 图知识
 
@@ -120,10 +127,11 @@ description: Single entry for all knowledge and information retrieval in this wo
 
 ## 七、工具与引用速查
 
-| 目标                 | 工具/方式                                       | 溯源要求                                           |
-| -------------------- | ----------------------------------------------- | -------------------------------------------------- |
-| Knowledge 文件列表   | `Glob`，如 `knowledge/**/*`                     | 回答中注明文档路径与章节                           |
-| Knowledge 内容关键词 | `Grep` 于 `knowledge/`                          | 注明文档路径与章节                                 |
-| 图 schema            | `get-schema`                                    | 不向用户暴露 schema                                |
-| 图只读查询           | `read-cypher`（先 schema）                      | 用业务语言概括，并说明「根据当前服务与区域数据」等 |
-| Asia Briefing 页面   | `mcp_web_fetch`或`search` skill（仅 AB 及子站） | 注明文章标题、日期、URL                            |
+| 目标               | 工具/方式                                       | 溯源要求                                           |
+| ------------------ | ----------------------------------------------- | -------------------------------------------------- |
+| Knowledge 文件列表 | `listKnowledgeFiles`                            | 回答中注明文件名与章节                             |
+| Knowledge 搜索文件 | `searchKnowledgeFiles`（按关键词）              | 注明文件名与章节                                   |
+| Knowledge 读取内容 | `readKnowledgeFile`（精确文件名）               | 注明文件名与章节                                   |
+| 图 schema          | `getSchema`                                     | 不向用户暴露 schema                                |
+| 图只读查询         | `readCypher`（先 schema）                       | 用业务语言概括，并说明「根据当前服务与区域数据」等 |
+| Asia Briefing 页面 | `mcp_web_fetch`或`search` skill（仅 AB 及子站） | 注明文章标题、日期、URL                            |

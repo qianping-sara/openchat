@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   outputFileTracingIncludes: {
-    "/api/chat": ["lib/ai/skills/**/*"],
+    "/api/chat": ["lib/ai/skills/**/*", "Knowledge/**/*"],
   },
   images: {
     remotePatterns: [

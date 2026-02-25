@@ -1,15 +1,64 @@
 # 本地 Knowledge — 使用细节（3.1 用）
 
-**路径**：工作区根目录下 `Knowledge/`。目录与文件会持续更新，以下为**发现方法**，不假定固定子目录名。
+**存储位置**：Knowledge 文件存储在 Vercel Blob Storage，通过专用的 Knowledge 工具访问。所有文件均为 Markdown 格式（.md），内容会持续更新。
 
-## 发现流程
+## 可用工具（三个专用工具）
 
-1. **列文件**：`Glob` 使用 `Knowledge/**/*` 或按扩展名如 `Knowledge/**/*.md`；结果常按修改时间排序，可结合路径/文件名推断相关性（国家、行业、主题等）。
-2. **按内容搜**：`Grep` 在 `Knowledge/` 下搜关键词（区域如 Vietnam、业务如 site selection、tax incentive、HR compliance 等），`output_mode: "files_with_matches"` 先得候选文件。
-3. **组合**：可先 Glob 筛一批再 Grep 精筛，或先 Grep 再按路径/文件名取舍。
-4. **锁定章节**：对候选文件 `Read`，先看标题/目录，再用 offset+limit 精读相关小节；必要时在章节内再搜关键词定位段落。
+Knowledge 文件通过以下三个专用工具访问，**不使用** Glob/Grep/Read：
+
+### 1. `listKnowledgeFiles` — 列出所有知识文件
+
+- **用途**：发现所有可用的 knowledge 文件
+- **返回**：文件名列表、大小、上传时间
+- **何时使用**：
+  - 不确定有哪些文件时
+  - 需要浏览所有可用知识时
+  - 作为检索的第一步
+
+### 2. `searchKnowledgeFiles` — 按关键词搜索文件
+
+- **用途**：根据文件名中的关键词查找相关文件
+- **参数**：`keyword` - 搜索关键词（如 "越南"、"泰国"、"园区"、"投资"）
+- **返回**：匹配的文件列表
+- **何时使用**：
+  - 知道主题但不知道具体文件名
+  - 需要找特定国家/区域/主题的文件
+  - 快速定位相关知识
+
+### 3. `readKnowledgeFile` — 读取文件完整内容
+
+- **用途**：获取特定文件的完整 Markdown 内容
+- **参数**：`fileName` - 精确的文件名（从 list 或 search 结果中获取）
+- **返回**：文件的完整文本内容
+- **何时使用**：
+  - 已确定需要读取哪个文件
+  - 需要文件的详细内容进行分析
+
+## 推荐工作流程
+
+1. **发现阶段**：
+   - 如果不确定有什么文件：先用 `listKnowledgeFiles` 浏览所有文件
+   - 如果知道主题：直接用 `searchKnowledgeFiles` 搜索关键词
+
+2. **定位阶段**：
+   - 从 list 或 search 结果中选择相关文件
+   - 注意文件名通常包含主题信息（如 "越南.md"、"2024 越南投资专题.md"）
+
+3. **读取阶段**：
+   - 用 `readKnowledgeFile` 读取选定文件的完整内容
+   - 分析内容并提取相关信息
 
 ## 引用约定
 
-- 必须标明：**文档路径**（如 `Knowledge/区域/越南/xxx.md`）+ **章节**（节名或「第 X 节」）。
-- 示例：「以上判断参考《文档名》（Knowledge/…/xxx.md）中「Tax incentives」一节」。
+- 必须标明：**文件名** + **具体章节或段落**（如果适用）
+- 示例：
+  - 「根据《越南.md》中关于税收优惠的说明…」
+  - 「参考《2024 越南投资专题.md》第三部分…」
+  - 「《东南亚公司设立.md》提到…」
+
+## 注意事项
+
+- ✅ **使用专用工具**：始终使用 `listKnowledgeFiles`、`searchKnowledgeFiles`、`readKnowledgeFile`
+- ❌ **不使用文件系统工具**：不要用 Glob、Grep、Read 等工具访问 Knowledge
+- ✅ **精确文件名**：`readKnowledgeFile` 需要精确的文件名（包括 .md 扩展名）
+- ✅ **先搜索后读取**：建议先用 search 或 list 确定文件，再读取内容

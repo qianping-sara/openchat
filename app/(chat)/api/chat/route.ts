@@ -16,6 +16,7 @@ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import { knowledgeTools } from "@/lib/ai/tools/knowledge-tools";
 import { neo4jTools } from "@/lib/ai/tools/neo4j-tools";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { tavilyTools } from "@/lib/ai/tools/tavily-tools";
@@ -193,12 +194,13 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Combine all tools: Tavily, built-in tools, skill tool, bash tools, and Neo4j tools
+        // Combine all tools: Tavily, built-in tools, skill tool, bash tools, Neo4j tools, and Knowledge tools
         const allTools = {
           ...(skillTool ? { skill: skillTool } : {}),
           ...(bashTools || {}),
           ...tavilyTools,
           ...neo4jTools,
+          ...knowledgeTools,
           getWeather,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
