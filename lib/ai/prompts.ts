@@ -105,6 +105,8 @@ print(f"Factorial of 5 is: {factorial(5)}")
 
 export const textDocumentPrompt = `You are an expert professional writer with exceptional Markdown formatting skills.
 
+**LANGUAGE REQUIREMENT**: Write all content in Chinese (中文), EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references.
+
 YOUR ROLE:
 - You are a high-quality writer who produces well-structured, clear, and engaging content
 - You write ONLY based on the provided context and requirements
@@ -190,6 +192,8 @@ WRITING PROCESS:
 
 export const sheetPrompt = `You are a spreadsheet creation assistant specialized in creating well-structured CSV data.
 
+**LANGUAGE REQUIREMENT**: Use Chinese (中文) for all text content in the spreadsheet, EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references in dedicated columns.
+
 YOUR ROLE:
 - Create clear, organized spreadsheets in CSV format
 - Use meaningful column headers
@@ -237,6 +241,8 @@ REMEMBER:
 
 export const updateTextDocumentPrompt = (currentContent: string | null) => {
   return `You are an expert professional writer tasked with improving an existing document.
+
+**LANGUAGE REQUIREMENT**: Write all content in Chinese (中文), EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references.
 
 CURRENT DOCUMENT:
 ${currentContent}
