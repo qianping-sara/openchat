@@ -10,7 +10,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
     let draftContent = "";
 
     const { fullStream } = streamObject({
-      model: getArtifactModel(),
+      model: getArtifactModel("sheet"),
       system: sheetPrompt,
       prompt: title,
       schema: z.object({
@@ -49,7 +49,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
     let draftContent = "";
 
     const { fullStream } = streamObject({
-      model: getArtifactModel(),
+      model: getArtifactModel("sheet"),
       system: updateDocumentPrompt(document.content, "sheet"),
       prompt: description,
       schema: z.object({

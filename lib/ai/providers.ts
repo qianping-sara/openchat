@@ -68,9 +68,16 @@ export function getTitleModel() {
   return gateway.languageModel("google/gemini-2.5-flash-lite");
 }
 
-export function getArtifactModel() {
+export function getArtifactModel(kind?: "text" | "code" | "sheet") {
   if (isTestEnvironment && myProvider) {
     return myProvider.languageModel("artifact-model");
   }
-  return gateway.languageModel("anthropic/claude-haiku-4.5");
+
+  // Code artifacts use Haiku (fast and good enough for code)
+  if (kind === "code") {
+    return gateway.languageModel("anthropic/claude-haiku-4.5");
+  }
+
+  // Text and Sheet artifacts use Gemini 2.5 Flash Lite (better formatting)
+  return gateway.languageModel("google/gemini-2.5-flash-lite");
 }
