@@ -208,6 +208,17 @@
   }
 }
 
+/* Header divider with faded edges */
+.header-divider-gradient {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    color-mix(in srgb, var(--border) 40%, transparent) 15%,
+    color-mix(in srgb, var(--border) 40%, transparent) 85%,
+    transparent 100%
+  );
+}
+
 .skeleton {
   * {
     pointer-events: none !important;

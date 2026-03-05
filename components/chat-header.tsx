@@ -25,7 +25,7 @@ function PureChatHeader({
 
   const headerContent = useMemo(
     () => (
-    <header className="sticky top-0 z-10 flex shrink-0 items-center gap-2 bg-background px-2 py-1.5 md:px-4">
+    <header className="relative sticky top-0 z-10 flex shrink-0 items-center gap-2 bg-background/80 px-2 py-1.5 backdrop-blur-md md:px-4">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg"
@@ -68,6 +68,11 @@ function PureChatHeader({
         chatId={chatId}
         isReadonly={isReadonly}
         selectedVisibilityType={selectedVisibilityType}
+      />
+      {/* Gradient divider - fades at edges */}
+      <div
+        aria-hidden
+        className="header-divider-gradient absolute bottom-0 left-0 right-0 h-px"
       />
     </header>
     ),
