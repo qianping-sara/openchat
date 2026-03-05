@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { memo } from "react";
-import { useWindowSize } from "usehooks-ts";
+import ascentiumIcon from "@/assets/ascentium-icon.png";
+import { memo, useEffect, useMemo } from "react";
+import { useHeaderSlot } from "@/components/header-slot-context";
 import { SidebarToggle } from "@/components/sidebar-toggle";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, VercelIcon } from "./icons";
-import { useSidebar } from "./ui/sidebar";
-import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
+import { HeaderUserNav } from "@/components/header-user-nav";
+import { PlusIcon } from "./icons";
+import type { VisibilityType } from "./visibility-selector";
 
 function PureChatHeader({
   chatId,
@@ -20,51 +21,71 @@ function PureChatHeader({
   isReadonly: boolean;
 }) {
   const router = useRouter();
-  const { open } = useSidebar();
+  const headerSlot = useHeaderSlot();
 
-  const { width: windowWidth } = useWindowSize();
+  const headerContent = useMemo(
+    () => (
+    <header className="sticky top-0 z-10 flex shrink-0 items-center gap-2 bg-background px-2 py-1.5 md:px-4">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div
+          className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg"
+          aria-hidden
+        >
+          <Image
+            alt=""
+            className="object-contain"
+            height={40}
+            priority
+            src={ascentiumIcon}
+            width={40}
+          />
+        </div>
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-sm font-semibold text-[#E85D04]">
+            ASCENTIUM
+          </span>
+          <span className="truncate text-xs text-zinc-900 dark:text-zinc-200">
+            ODI China Knowledge AI
+          </span>
+        </div>
+      </div>
 
-  return (
-    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
       <SidebarToggle />
 
-      {(!open || windowWidth < 768) && (
-        <Button
-          className="order-2 ml-auto h-8 px-2 md:order-1 md:ml-0 md:h-fit md:px-2"
-          onClick={() => {
-            router.push("/");
-            router.refresh();
-          }}
-          variant="outline"
-        >
-          <PlusIcon />
-          <span className="md:sr-only">New Chat</span>
-        </Button>
-      )}
-
-      {!isReadonly && (
-        <VisibilitySelector
-          chatId={chatId}
-          className="order-1 md:order-2"
-          selectedVisibilityType={selectedVisibilityType}
-        />
-      )}
-
       <Button
-        asChild
-        className="order-3 hidden bg-zinc-900 px-2 text-zinc-50 hover:bg-zinc-800 md:ml-auto md:flex md:h-fit dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        className="size-8 shrink-0 p-0 md:size-8 md:p-0"
+        onClick={() => {
+          router.push("/");
+          router.refresh();
+        }}
+        variant="outline"
       >
-        <Link
-          href={"https://vercel.com/templates/next.js/openchat"}
-          rel="noreferrer"
-          target="_noblank"
-        >
-          <VercelIcon size={16} />
-          Deploy with Vercel
-        </Link>
+        <PlusIcon />
+        <span className="sr-only">New Chat</span>
       </Button>
+
+      <HeaderUserNav
+        chatId={chatId}
+        isReadonly={isReadonly}
+        selectedVisibilityType={selectedVisibilityType}
+      />
     </header>
+    ),
+    [chatId, selectedVisibilityType, isReadonly]
   );
+
+  useEffect(() => {
+    headerSlot?.setHeaderContent(headerContent);
+    return () => {
+      headerSlot?.setHeaderContent(null);
+    };
+  }, [headerSlot, headerContent]);
+
+  if (!headerSlot) {
+    return headerContent;
+  }
+
+  return null;
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
