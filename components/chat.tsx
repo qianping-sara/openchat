@@ -208,7 +208,7 @@ export function Chat({
           votes={votes}
         />
 
-        <div className="z-1 mx-auto flex shrink-0 w-full max-w-4xl gap-2 border-t bg-background px-2 py-3 md:px-4 md:py-4">
+        <div className="z-1 mx-auto flex shrink-0 w-full max-w-4xl gap-2 border-t bg-background px-2 py-2 md:px-4 md:py-4">
           {!isReadonly && (
             <MultimodalInput
               attachments={attachments}

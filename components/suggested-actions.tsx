@@ -23,7 +23,7 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
 
   return (
     <div
-      className="grid w-full gap-2 sm:grid-cols-2"
+      className="mx-auto grid w-full max-w-[80%] gap-2 sm:max-w-full sm:grid-cols-2"
       data-testid="suggested-actions"
     >
       {suggestedActions.map((suggestedAction, index) => (

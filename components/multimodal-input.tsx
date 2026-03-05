@@ -296,7 +296,7 @@ function PureMultimodalInput({
   }, [handlePaste]);
 
   return (
-    <div className={cn("relative flex w-full flex-col gap-4", className)}>
+    <div className={cn("relative flex w-full flex-col gap-2 md:gap-4", className)}>
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
@@ -317,7 +317,7 @@ function PureMultimodalInput({
       />
 
       <PromptInput
-        className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
+        className="rounded-xl border border-border bg-background p-2 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50 md:p-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!input.trim() && attachments.length === 0) {
@@ -365,7 +365,7 @@ function PureMultimodalInput({
         )}
         <div className="flex flex-row items-start gap-1 sm:gap-2">
           <PromptInputTextarea
-            className="grow resize-none border-0! border-none! bg-transparent p-2 text-base outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
+            className="min-h-9 grow resize-none border-0! border-none! bg-transparent p-1.5 text-base outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden md:min-h-[44px] md:p-2"
             data-testid="multimodal-input"
             disableAutoResize={true}
             maxHeight={200}
