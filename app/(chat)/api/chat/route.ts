@@ -1,4 +1,5 @@
 import { geolocation } from "@vercel/functions";
+import type { Tool } from "ai";
 import {
   convertToModelMessages,
   createUIMessageStream,
@@ -14,13 +15,7 @@ import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { knowledgeTools } from "@/lib/ai/tools/knowledge-tools";
-import { neo4jTools } from "@/lib/ai/tools/neo4j-tools";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { tavilyTools } from "@/lib/ai/tools/tavily-tools";
-import { updateDocument } from "@/lib/ai/tools/update-document";
+import { getMCPTools } from "@/lib/ai/mcp/tools";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -142,14 +137,16 @@ export async function POST(request: Request) {
 
     const modelMessages = await convertToModelMessages(uiMessages);
 
-    // Load bash-tool skills so agent can call skills via bashtools
+    // Load bash-tool skills (kept for future use; currently disabled)
     // See: https://ai-sdk.dev/cookbook/guides/agent-skills
+    const ENABLE_SKILL_BASH = false;
     let skillTool:
       | Awaited<ReturnType<typeof experimental_createSkillTool>>["skill"]
       | null = null;
     let bashTools: Awaited<ReturnType<typeof createBashTool>>["tools"] | null =
       null;
     let skillsInstructions = "";
+    if (ENABLE_SKILL_BASH) {
     try {
       // Check if skills directory exists
       const fs = await import("node:fs/promises");
@@ -190,22 +187,14 @@ export async function POST(request: Request) {
       // Skills optional; agent still has MCP + built-in tools
       console.error("[Skills] Failed to load skills:", error);
     }
+    }
 
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Combine all tools: Tavily, built-in tools, skill tool, bash tools, Neo4j tools, and Knowledge tools
-        const allTools = {
-          ...(skillTool ? { skill: skillTool } : {}),
-          ...(bashTools || {}),
-          ...tavilyTools,
-          ...neo4jTools,
-          ...knowledgeTools,
-          getWeather,
-          createDocument: createDocument({ session, dataStream }),
-          updateDocument: updateDocument({ session, dataStream }),
-          requestSuggestions: requestSuggestions({ session, dataStream }),
-        };
+        // PageIndex MCP tools (recent_documents, find_relevant_documents, get_page_content, etc.)
+        const { tools: mcpTools } = await getMCPTools();
+        const allTools = { ...mcpTools } as Record<string, Tool>;
 
         try {
           // Multi-step loop: each step runs until model finishes; tool results are sent as

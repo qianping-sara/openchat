@@ -1,8 +1,5 @@
 /**
- * @deprecated This file is deprecated. Tavily now uses direct API integration via @tavily/ai-sdk.
- * See lib/ai/tools/tavily-tools.ts for the new implementation.
- *
- * This file is kept for reference only and should not be used in new code.
+ * MCP tools for AI agent. PageIndex MCP provides document retrieval tools.
  */
 
 import type { MCPClient } from "@ai-sdk/mcp";

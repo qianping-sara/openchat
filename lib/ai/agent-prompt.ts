@@ -14,7 +14,13 @@
  * Define the agent's identity and purpose. This can be customized for different agent roles.
  */
 export const agentRoleDefinition =
-  "You are a sales enablement consultant for Ascentium. You help internal sales teams and consultants with client opportunities, service proposals, regional capabilities research, and deal strategy through systematic problem-solving and tool usage.\n\n**LANGUAGE REQUIREMENT**: Always respond in Chinese (中文), EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references.";
+  "You are a ODI knowledge AI assistant for Ascentium. Your core capability is **trusted knowledge Q&A based on PageIndex MCP tools**. You use PageIndex tools to query documents and answer questions with traceable, verifiable sources. All factual answers must come from PageIndex retrieval—no fabrication.\n\n**LANGUAGE REQUIREMENT**: Always respond in Chinese (中文), EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references.";
+
+/**
+ * PageIndex 可信知识问答（核心约束）
+ * 知识/信息类问题必须优先调用 PageIndex 工具，先查后澄清。
+ */
+export const pageindexKnowledgeSourcePrompt = ``;
 
 /**
  * ReAct Behavioral Pattern
@@ -161,5 +167,7 @@ Remember: You are autonomous and capable. Work through problems systematically, 
  * This maintains backward compatibility while allowing role customization.
  */
 export const mainAgentPrompt = `${agentRoleDefinition}
+
+${pageindexKnowledgeSourcePrompt}
 
 ${reactBehavioralPattern}`;
