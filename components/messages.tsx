@@ -46,10 +46,10 @@ function PureMessages({
   return (
     <div className="relative min-h-0 flex-1 bg-background">
       <div
-        className="absolute inset-0 touch-pan-y overflow-y-auto bg-background"
+        className="absolute inset-0 overflow-x-hidden overflow-y-auto touch-pan-y bg-background"
         ref={messagesContainerRef}
       >
-        <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
+        <div className="mx-auto flex min-w-0 w-full max-w-4xl flex-col gap-4 px-4 py-4 md:gap-6 md:px-6">
           {messages.length === 0 && <Greeting />}
 
           {messages.map((message, index) => (

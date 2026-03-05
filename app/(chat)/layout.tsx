@@ -32,7 +32,7 @@ async function SidebarWrapper({ children }: { children: React.ReactNode }) {
     <SidebarProvider defaultOpen={!isCollapsed}>
       <ChatLayoutClient>
         <div
-          className="flex h-dvh w-full flex-col overflow-hidden"
+          className="flex h-dvh w-full flex-col overflow-x-hidden overflow-y-hidden"
           style={{ "--header-height": "3.5rem" } as React.CSSProperties}
         >
           <div
