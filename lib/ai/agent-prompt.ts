@@ -14,9 +14,17 @@
  */
 export function getLanguageRequirement(locale: "zh" | "en" = "zh"): string {
   if (locale === "en") {
-    return "**LANGUAGE REQUIREMENT**: Always respond in English, maintaining clarity and professionalism in all communications.";
+    return `**LANGUAGE REQUIREMENT (CRITICAL - MUST FOLLOW)**:
+- You MUST respond in English for ALL responses, regardless of the language used in the user's question
+- Even if the user asks questions in Chinese, Japanese, or any other language, you MUST respond in English
+- This is a strict requirement that overrides any language preferences implied by the user's input
+- Maintain clarity and professionalism in all English communications`;
   }
-  return "**LANGUAGE REQUIREMENT**: Always respond in Chinese (中文), EXCEPT when citing sources - preserve the original English text for source URLs, titles, and references.";
+  return `**LANGUAGE REQUIREMENT (CRITICAL - MUST FOLLOW)**:
+- You MUST respond in Chinese (中文) for ALL responses, regardless of the language used in the user's question
+- Even if the user asks questions in English or any other language, you MUST respond in Chinese
+- This is a strict requirement that overrides any language preferences implied by the user's input
+- EXCEPTION: When citing sources, preserve the original English text for source URLs, titles, and references`;
 }
 
 /**
