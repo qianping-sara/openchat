@@ -66,6 +66,8 @@ export async function POST(request: Request) {
       locale = "zh",
     } = requestBody;
 
+    console.log("[API /chat] Received locale:", locale);
+
     const session = await auth();
 
     if (!session?.user) {

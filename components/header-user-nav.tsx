@@ -1,6 +1,6 @@
 "use client";
 
-import { Languages, LogIn, LogOut, Moon, Sun } from "lucide-react";
+import { LogIn, LogOut, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -26,6 +26,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -166,13 +167,33 @@ export function HeaderUserNav({
             {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
           </DropdownMenuItem>
 
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Language</DropdownMenuLabel>
           <DropdownMenuItem
-            className="flex cursor-pointer items-center gap-2"
-            data-testid="header-user-nav-item-locale"
-            onSelect={() => setLocale(locale === "zh" ? "en" : "zh")}
+            className="group/item flex cursor-pointer items-center justify-between"
+            data-active={locale === "zh"}
+            data-testid="locale-selector-item-zh"
+            onSelect={() => setLocale("zh")}
           >
-            <Languages size={16} />
-            {locale === "zh" ? "中文" : "English"}
+            <span className="flex items-center gap-2">中文</span>
+            {locale === "zh" && (
+              <span className="text-foreground opacity-100">
+                <CheckCircleFillIcon />
+              </span>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="group/item flex cursor-pointer items-center justify-between"
+            data-active={locale === "en"}
+            data-testid="locale-selector-item-en"
+            onSelect={() => setLocale("en")}
+          >
+            <span className="flex items-center gap-2">English</span>
+            {locale === "en" && (
+              <span className="text-foreground opacity-100">
+                <CheckCircleFillIcon />
+              </span>
+            )}
           </DropdownMenuItem>
 
           {user && (

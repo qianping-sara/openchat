@@ -70,6 +70,8 @@ export const systemPrompt = ({
   requestHints: RequestHints;
   locale?: "zh" | "en";
 }) => {
+  console.log("[systemPrompt] Building prompt with locale:", locale);
+
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
   // Build the main agent prompt dynamically based on locale
@@ -78,6 +80,13 @@ export const systemPrompt = ({
 ${pageindexKnowledgeSourcePrompt}
 
 ${reactBehavioralPattern}`;
+
+  console.log(
+    "[systemPrompt] Language requirement:",
+    mainAgentPrompt.includes("Always respond in English")
+      ? "English"
+      : "Chinese"
+  );
 
   // temporarily disable artifacts prompt
   // return `${mainAgentPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;

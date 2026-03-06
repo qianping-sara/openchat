@@ -121,6 +121,8 @@ export function Chat({
             })
           );
 
+        console.log("[chat.tsx] Sending request with locale:", locale);
+
         return {
           body: {
             id: request.id,
