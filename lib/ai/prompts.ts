@@ -1,6 +1,10 @@
 import type { Geo } from "@vercel/functions";
 import type { ArtifactKind } from "@/components/artifact";
-import { getAgentRoleDefinition, mainAgentPrompt } from "./agent-prompt";
+import {
+  getAgentRoleDefinition,
+  pageindexKnowledgeSourcePrompt,
+  reactBehavioralPattern,
+} from "./agent-prompt";
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
@@ -67,14 +71,17 @@ export const systemPrompt = ({
   locale?: "zh" | "en";
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
-  const agentPrompt = mainAgentPrompt.replace(
-    /You are an ODI knowledge AI assistant for Ascentium\.[\s\S]*?\*\*SELF-INTRODUCTION\*\*:[^\n]*/,
-    getAgentRoleDefinition(locale)
-  );
+
+  // Build the main agent prompt dynamically based on locale
+  const mainAgentPrompt = `${getAgentRoleDefinition(locale)}
+
+${pageindexKnowledgeSourcePrompt}
+
+${reactBehavioralPattern}`;
 
   // temporarily disable artifacts prompt
-  // return `${agentPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
-  return `${agentPrompt}\n\n${requestPrompt}`;
+  // return `${mainAgentPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${mainAgentPrompt}\n\n${requestPrompt}`;
 };
 
 export const codePrompt = `
