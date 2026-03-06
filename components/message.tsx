@@ -201,11 +201,10 @@ const PurePreviewMessage = ({
                 (state === "approval-responded" &&
                   (part as { approval?: { approved?: boolean } }).approval
                     ?.approved === false);
-              const widthClass = "w-[min(100%,450px)]";
 
               if (state === "output-available") {
                 return (
-                  <div className={widthClass} key={toolCallId}>
+                  <div className="w-full" key={toolCallId}>
                     <Weather weatherAtLocation={part.output} />
                   </div>
                 );
@@ -213,8 +212,8 @@ const PurePreviewMessage = ({
 
               if (isDenied) {
                 return (
-                  <div className={widthClass} key={toolCallId}>
-                    <Tool className="w-full" defaultOpen={true}>
+                  <div className="w-full" key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={false}>
                       <ToolHeader
                         state="output-denied"
                         type="tool-getWeather"
@@ -231,8 +230,8 @@ const PurePreviewMessage = ({
 
               if (state === "approval-responded") {
                 return (
-                  <div className={widthClass} key={toolCallId}>
-                    <Tool className="w-full" defaultOpen={true}>
+                  <div className="w-full" key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={false}>
                       <ToolHeader state={state} type="tool-getWeather" />
                       <ToolContent>
                         <ToolInput input={part.input} />
@@ -243,8 +242,8 @@ const PurePreviewMessage = ({
               }
 
               return (
-                <div className={widthClass} key={toolCallId}>
-                  <Tool className="w-full" defaultOpen={true}>
+                <div className="w-full" key={toolCallId}>
+                  <Tool className="w-full" defaultOpen={false}>
                     <ToolHeader state={state} type="tool-getWeather" />
                     <ToolContent>
                       {(state === "input-available" ||
@@ -338,7 +337,7 @@ const PurePreviewMessage = ({
               const { toolCallId, state } = part;
 
               return (
-                <Tool defaultOpen={true} key={toolCallId}>
+                <Tool defaultOpen={false} key={toolCallId}>
                   <ToolHeader state={state} type="tool-requestSuggestions" />
                   <ToolContent>
                     {state === "input-available" && (
@@ -389,7 +388,7 @@ const PurePreviewMessage = ({
               const headerType = `tool-${toolName}`;
 
               return (
-                <div className="w-[min(100%,450px)]" key={key}>
+                <div className="w-full" key={key}>
                   <Tool defaultOpen={false}>
                     <ToolHeader
                       state={displayState}
@@ -482,7 +481,7 @@ const PurePreviewMessage = ({
                 | "output-denied";
 
               return (
-                <div className="w-[min(100%,450px)]" key={toolCallId}>
+                <div className="w-full" key={toolCallId}>
                   <Tool defaultOpen={false}>
                     <ToolHeader
                       state={displayState}
