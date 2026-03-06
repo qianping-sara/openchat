@@ -296,7 +296,9 @@ function PureMultimodalInput({
   }, [handlePaste]);
 
   return (
-    <div className={cn("relative flex w-full flex-col gap-2 md:gap-4", className)}>
+    <div
+      className={cn("relative flex w-full flex-col gap-2 md:gap-4", className)}
+    >
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
@@ -477,12 +479,8 @@ function PureModelSelectorCompact({
 
   // Provider display names
   const providerNames: Record<string, string> = {
-    anthropic: "Anthropic",
-    openai: "OpenAI",
-    google: "Google",
-    xai: "xAI",
-    deepseek: "DeepSeek",
-    reasoning: "Reasoning",
+    azure: "Azure",
+    gemini: "Google",
   };
 
   return (

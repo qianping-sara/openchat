@@ -13,9 +13,9 @@ import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { getMCPTools } from "@/lib/ai/mcp/tools";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
-import { getMCPTools } from "@/lib/ai/mcp/tools";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -128,13 +128,6 @@ export async function POST(request: Request) {
       });
     }
 
-    const isReasoningModel =
-      selectedChatModel.includes("reasoning") ||
-      selectedChatModel.includes("thinking");
-
-    // Check if it's a Gemini 3 model (supports thinking via thinkingConfig)
-    const isGemini3Model = selectedChatModel.startsWith("google/gemini-3");
-
     const modelMessages = await convertToModelMessages(uiMessages);
 
     // Load bash-tool skills (kept for future use; currently disabled)
@@ -147,46 +140,45 @@ export async function POST(request: Request) {
       null;
     let skillsInstructions = "";
     if (ENABLE_SKILL_BASH) {
-    try {
-      // Check if skills directory exists
-      const fs = await import("node:fs/promises");
-      const path = await import("node:path");
-      const skillsPath = path.join(process.cwd(), "lib/ai/skills");
-
       try {
-        await fs.access(skillsPath);
-        console.log("[Skills] Skills directory exists at:", skillsPath);
-      } catch {
-        console.error("[Skills] Skills directory NOT found at:", skillsPath);
-        console.error("[Skills] Current working directory:", process.cwd());
-        throw new Error("Skills directory not found");
-      }
+        // Check if skills directory exists
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const skillsPath = path.join(process.cwd(), "lib/ai/skills");
 
-      // Discover skills and get files to upload
-      const { skill, files, instructions } = await experimental_createSkillTool(
-        {
-          skillsDirectory: "lib/ai/skills",
+        try {
+          await fs.access(skillsPath);
+          console.log("[Skills] Skills directory exists at:", skillsPath);
+        } catch {
+          console.error("[Skills] Skills directory NOT found at:", skillsPath);
+          console.error("[Skills] Current working directory:", process.cwd());
+          throw new Error("Skills directory not found");
         }
-      );
-      skillTool = skill;
-      skillsInstructions = instructions;
 
-      // Create bash tool with skill files
-      // DON'T pass instructions to extraInstructions - it adds misleading text
-      // about running scripts. Instead, we'll add instructions to system prompt.
-      const { tools } = await createBashTool({
-        files,
-      });
-      bashTools = tools;
-      console.log(
-        "[Skills] Successfully loaded",
-        Object.keys(tools || {}).length,
-        "bash tools"
-      );
-    } catch (error) {
-      // Skills optional; agent still has MCP + built-in tools
-      console.error("[Skills] Failed to load skills:", error);
-    }
+        // Discover skills and get files to upload
+        const { skill, files, instructions } =
+          await experimental_createSkillTool({
+            skillsDirectory: "lib/ai/skills",
+          });
+        skillTool = skill;
+        skillsInstructions = instructions;
+
+        // Create bash tool with skill files
+        // DON'T pass instructions to extraInstructions - it adds misleading text
+        // about running scripts. Instead, we'll add instructions to system prompt.
+        const { tools } = await createBashTool({
+          files,
+        });
+        bashTools = tools;
+        console.log(
+          "[Skills] Successfully loaded",
+          Object.keys(tools || {}).length,
+          "bash tools"
+        );
+      } catch (error) {
+        // Skills optional; agent still has MCP + built-in tools
+        console.error("[Skills] Failed to load skills:", error);
+      }
     }
 
     const stream = createUIMessageStream({
@@ -214,22 +206,6 @@ export async function POST(request: Request) {
                   functionId: "tool-loop-agent",
                 }
               : undefined,
-            providerOptions: isReasoningModel
-              ? {
-                  anthropic: {
-                    thinking: { type: "enabled", budgetTokens: 10_000 },
-                  },
-                }
-              : isGemini3Model
-                ? {
-                    google: {
-                      thinkingConfig: {
-                        thinkingLevel: "high",
-                        includeThoughts: true,
-                      },
-                    },
-                  }
-                : undefined,
           });
 
           const result = await agent.stream({
@@ -260,6 +236,11 @@ export async function POST(request: Request) {
             delta: `\n\nSomething went wrong and the response stopped: ${message}`,
           });
           dataStream.write({ type: "text-end", id: errorId });
+          // 重要: 发送 finish 事件以正确关闭流,否则前端会认为请求还在进行中
+          dataStream.write({
+            type: "finish",
+            finishReason: "error",
+          });
         }
         // Note: No cleanup needed for Tavily tools (direct API calls, no persistent connections)
       },
