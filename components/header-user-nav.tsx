@@ -115,8 +115,58 @@ export function HeaderUserNav({
           data-testid="header-user-nav-menu"
           side="bottom"
         >
+          {/* 1. Login / Sign out */}
+          <DropdownMenuItem asChild data-testid="header-user-nav-item-auth">
+            <button
+              className="flex w-full cursor-pointer items-center gap-2"
+              onClick={() => {
+                if (isGuest) {
+                  router.push("/login");
+                } else {
+                  signOut({ redirectTo: "/" });
+                }
+              }}
+              type="button"
+            >
+              {isGuest ? <LogIn size={16} /> : <LogOut size={16} />}
+              {isGuest ? "Login to your account" : "Sign out"}
+            </button>
+          </DropdownMenuItem>
+
+          {/* 2. Language */}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Language</DropdownMenuLabel>
+          <DropdownMenuItem
+            className="group/item flex cursor-pointer items-center justify-between"
+            data-active={locale === "zh"}
+            data-testid="locale-selector-item-zh"
+            onSelect={() => setLocale("zh")}
+          >
+            <span className="flex items-center gap-2">中文</span>
+            {locale === "zh" && (
+              <span className="text-foreground opacity-100">
+                <CheckCircleFillIcon />
+              </span>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="group/item flex cursor-pointer items-center justify-between"
+            data-active={locale === "en"}
+            data-testid="locale-selector-item-en"
+            onSelect={() => setLocale("en")}
+          >
+            <span className="flex items-center gap-2">English</span>
+            {locale === "en" && (
+              <span className="text-foreground opacity-100">
+                <CheckCircleFillIcon />
+              </span>
+            )}
+          </DropdownMenuItem>
+
+          {/* 3. Chat visibility */}
           {!isReadonly && (
             <>
+              <DropdownMenuSeparator />
               <div className="px-2 py-1.5 text-muted-foreground text-xs font-medium">
                 Chat visibility
               </div>
@@ -152,10 +202,11 @@ export function HeaderUserNav({
                   </span>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
             </>
           )}
 
+          {/* 4. Dark mode */}
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="flex cursor-pointer items-center gap-2"
             data-testid="header-user-nav-item-theme"
@@ -167,35 +218,7 @@ export function HeaderUserNav({
             {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Language</DropdownMenuLabel>
-          <DropdownMenuItem
-            className="group/item flex cursor-pointer items-center justify-between"
-            data-active={locale === "zh"}
-            data-testid="locale-selector-item-zh"
-            onSelect={() => setLocale("zh")}
-          >
-            <span className="flex items-center gap-2">中文</span>
-            {locale === "zh" && (
-              <span className="text-foreground opacity-100">
-                <CheckCircleFillIcon />
-              </span>
-            )}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="group/item flex cursor-pointer items-center justify-between"
-            data-active={locale === "en"}
-            data-testid="locale-selector-item-en"
-            onSelect={() => setLocale("en")}
-          >
-            <span className="flex items-center gap-2">English</span>
-            {locale === "en" && (
-              <span className="text-foreground opacity-100">
-                <CheckCircleFillIcon />
-              </span>
-            )}
-          </DropdownMenuItem>
-
+          {/* 5. Delete all chats */}
           {user && (
             <>
               <DropdownMenuSeparator />
@@ -209,24 +232,6 @@ export function HeaderUserNav({
               </DropdownMenuItem>
             </>
           )}
-
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild data-testid="header-user-nav-item-auth">
-            <button
-              className="flex w-full cursor-pointer items-center gap-2"
-              onClick={() => {
-                if (isGuest) {
-                  router.push("/login");
-                } else {
-                  signOut({ redirectTo: "/" });
-                }
-              }}
-              type="button"
-            >
-              {isGuest ? <LogIn size={16} /> : <LogOut size={16} />}
-              {isGuest ? "Login to your account" : "Sign out"}
-            </button>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

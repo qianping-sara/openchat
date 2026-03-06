@@ -3,8 +3,8 @@ import Script from "next/script";
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatLayoutClient } from "@/components/chat-layout-client";
-import { HeaderSlotRenderer } from "@/components/header-slot-context";
 import { DataStreamProvider } from "@/components/data-stream-provider";
+import { HeaderSlotRenderer } from "@/components/header-slot-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "../(auth)/auth";
 
@@ -35,19 +35,21 @@ async function SidebarWrapper({ children }: { children: React.ReactNode }) {
           className="relative flex h-dvh w-full flex-col overflow-x-hidden overflow-y-hidden"
           style={{ "--header-height": "3.5rem" } as React.CSSProperties}
         >
-          <div className="flex min-h-0 flex-1">
+          {/* Header positioned above everything */}
+          <div
+            className="absolute inset-x-0 top-0 z-20"
+            style={{ height: "var(--header-height)" }}
+          >
+            <HeaderSlotRenderer />
+          </div>
+
+          {/* Sidebar and main content below header */}
+          <div
+            className="flex min-h-0 flex-1"
+            style={{ paddingTop: "var(--header-height)" }}
+          >
             <AppSidebar user={session?.user} />
-            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-              <div
-                className="absolute inset-x-0 top-0 z-10"
-                style={{ height: "var(--header-height)" }}
-              >
-                <HeaderSlotRenderer />
-              </div>
-              <SidebarInset>
-                {children}
-              </SidebarInset>
-            </div>
+            <SidebarInset>{children}</SidebarInset>
           </div>
         </div>
       </ChatLayoutClient>
