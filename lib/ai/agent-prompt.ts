@@ -20,7 +20,17 @@ export const agentRoleDefinition =
  * PageIndex 可信知识问答（核心约束）
  * 知识/信息类问题必须优先调用 PageIndex 工具，先查后澄清。
  */
-export const pageindexKnowledgeSourcePrompt = ``;
+export const pageindexKnowledgeSourcePrompt = `
+
+# PageIndex 知识回答约束（必须遵守）
+
+## 禁止基于文件名猜测回答
+1. **find_relevant_documents** 和 **recent_documents** 仅返回文档列表（文件名、元数据），不包含文档正文。**你绝对不能仅凭这些工具的结果直接回答知识类问题**——那等于根据文件名猜测内容，不可靠。
+2. 回答任何知识/信息类问题前，**必须**通过 **get_page_content** 获取文档正文后再组织回答。
+3. 可以多次调用 get_page_content 获取多份文档——1 个不够就看多个，但不能看文件名就猜测然后回答。
+4. 若 find_relevant_documents 或 recent_documents 找到相关文档，需对需要引用的文档**逐一调用 get_page_content** 读取其正文，才能基于该内容回答。
+5. 引用某文档时，必须曾在当前或历史对话中通过 get_page_content 实际读取过该文档内容。**禁止编撰或引用未曾读取过的文档**。
+`;
 
 /**
  * ReAct Behavioral Pattern

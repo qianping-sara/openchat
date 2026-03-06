@@ -44,8 +44,10 @@ function SequentialThinkingSummary({ output }: { output: unknown }) {
   );
 }
 
+import { extractPageIndexSources } from "@/lib/citations/sources";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
+import { MessageSources } from "./message-sources";
 import { PreviewAttachment } from "./preview-attachment";
 import { Weather } from "./weather";
 
@@ -75,6 +77,9 @@ const PurePreviewMessage = ({
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
+
+  const pageIndexSources =
+    message.role === "assistant" ? extractPageIndexSources(message) : [];
 
   useDataStream();
 
@@ -550,6 +555,10 @@ const PurePreviewMessage = ({
 
             return null;
           })}
+
+          {message.role === "assistant" && pageIndexSources.length > 0 && (
+            <MessageSources sources={pageIndexSources} />
+          )}
 
           {!isReadonly && (
             <MessageActions
