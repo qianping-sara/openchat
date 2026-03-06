@@ -57,8 +57,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, messages, selectedChatModel, selectedVisibilityType } =
-      requestBody;
+    const {
+      id,
+      message,
+      messages,
+      selectedChatModel,
+      selectedVisibilityType,
+      locale = "zh",
+    } = requestBody;
 
     const session = await auth();
 
@@ -196,7 +202,7 @@ export async function POST(request: Request) {
           const agent = new ToolLoopAgent({
             model: getLanguageModel(selectedChatModel),
             instructions:
-              systemPrompt({ selectedChatModel, requestHints }) +
+              systemPrompt({ selectedChatModel, requestHints, locale }) +
               (skillsInstructions ? `\n\n${skillsInstructions}` : ""),
             tools: allTools,
             stopWhen: stepCountIs(30),

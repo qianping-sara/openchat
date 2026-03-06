@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
+import { useLocale } from "@/components/locale-provider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +26,8 @@ import { OpenChatError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 import { Artifact } from "./artifact";
-import { DocSourceDrawerProvider } from "./doc-source-drawer";
 import { useDataStream } from "./data-stream-provider";
+import { DocSourceDrawerProvider } from "./doc-source-drawer";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
 import { getChatHistoryPaginationKey } from "./sidebar-history";
@@ -56,6 +57,7 @@ export function Chat({
   });
 
   const { mutate } = useSWRConfig();
+  const { locale } = useLocale();
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -127,6 +129,7 @@ export function Chat({
               : { message: lastMessage }),
             selectedChatModel: currentModelIdRef.current,
             selectedVisibilityType: visibilityType,
+            locale,
             ...request.body,
           },
         };

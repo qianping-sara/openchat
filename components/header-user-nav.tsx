@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, LogOut, Moon, Sun } from "lucide-react";
+import { Languages, LogIn, LogOut, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
+import { useLocale } from "@/components/locale-provider";
 import { getChatHistoryPaginationKey } from "@/components/sidebar-history";
 import {
   AlertDialog,
@@ -49,6 +50,7 @@ export function HeaderUserNav({
   const { setTheme, resolvedTheme } = useTheme();
   const { mutate } = useSWRConfig();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const { locale, setLocale } = useLocale();
 
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId,
@@ -162,6 +164,15 @@ export function HeaderUserNav({
           >
             {resolvedTheme === "light" ? <Moon size={16} /> : <Sun size={16} />}
             {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex cursor-pointer items-center gap-2"
+            data-testid="header-user-nav-item-locale"
+            onSelect={() => setLocale(locale === "zh" ? "en" : "zh")}
+          >
+            <Languages size={16} />
+            {locale === "zh" ? "中文" : "English"}
           </DropdownMenuItem>
 
           {user && (
