@@ -1,20 +1,15 @@
 "use client";
 
+import { LogIn, LogOut, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { getChatHistoryPaginationKey } from "@/components/sidebar-history";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,9 +21,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { guestRegex } from "@/lib/constants";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
-import { getChatHistoryPaginationKey } from "@/components/sidebar-history";
+import { guestRegex } from "@/lib/constants";
 import { CheckCircleFillIcon, GlobeIcon, LockIcon, TrashIcon } from "./icons";
 import type { VisibilityType } from "./visibility-selector";
 
@@ -153,16 +154,17 @@ export function HeaderUserNav({
           )}
 
           <DropdownMenuItem
-            className="cursor-pointer"
+            className="flex cursor-pointer items-center gap-2"
             data-testid="header-user-nav-item-theme"
             onSelect={() =>
               setTheme(resolvedTheme === "dark" ? "light" : "dark")
             }
           >
+            {resolvedTheme === "light" ? <Moon size={16} /> : <Sun size={16} />}
             {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
           </DropdownMenuItem>
 
-          {user && !isGuest && (
+          {user && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -179,7 +181,7 @@ export function HeaderUserNav({
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild data-testid="header-user-nav-item-auth">
             <button
-              className="w-full cursor-pointer"
+              className="flex w-full cursor-pointer items-center gap-2"
               onClick={() => {
                 if (isGuest) {
                   router.push("/login");
@@ -189,6 +191,7 @@ export function HeaderUserNav({
               }}
               type="button"
             >
+              {isGuest ? <LogIn size={16} /> : <LogOut size={16} />}
               {isGuest ? "Login to your account" : "Sign out"}
             </button>
           </DropdownMenuItem>
