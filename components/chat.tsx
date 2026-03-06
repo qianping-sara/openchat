@@ -25,6 +25,7 @@ import { OpenChatError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 import { Artifact } from "./artifact";
+import { DocSourceDrawerProvider } from "./doc-source-drawer";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
@@ -187,7 +188,7 @@ export function Chat({
   });
 
   return (
-    <>
+    <DocSourceDrawerProvider>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
         <ChatHeader
           chatId={id}
@@ -277,6 +278,6 @@ export function Chat({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </DocSourceDrawerProvider>
   );
 }
