@@ -49,7 +49,10 @@ function PureMessages({
         className="absolute inset-0 overflow-x-hidden overflow-y-auto touch-pan-y bg-background"
         ref={messagesContainerRef}
       >
-        <div className="mx-auto flex min-w-0 w-full max-w-4xl flex-col gap-4 px-4 py-4 md:gap-6 md:px-6">
+        <div
+          className="mx-auto flex min-w-0 w-full max-w-4xl flex-col gap-4 px-4 py-4 md:gap-6 md:px-6"
+          style={{ paddingTop: "calc(var(--header-height, 3.5rem) + 1rem)" }}
+        >
           {messages.length === 0 && <Greeting />}
 
           {messages.map((message, index) => (

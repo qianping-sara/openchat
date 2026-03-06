@@ -144,13 +144,20 @@ export function DocSourceDrawerProvider({
               : "inset-x-0 w-full max-h-[90vh] rounded-t-xl"
           )}
         >
-          <SheetHeader className="shrink-0 border-b px-6 py-4">
-            <SheetTitle className="truncate text-base">
-              {state.docName ? `《${state.docName}》` : "参考文档"}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-auto overscroll-contain px-2">
-            {state.resolveStatus === "loading" && (
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-auto overscroll-contain">
+            <SheetHeader
+              className="sticky top-0 z-10 shrink-0 border-b border-border/40 px-6 py-4"
+              style={{
+                background:
+                  "linear-gradient(to bottom, color-mix(in oklch, var(--background) 70%, transparent), color-mix(in oklch, var(--background) 40%, transparent))",
+              }}
+            >
+              <SheetTitle className="truncate text-base">
+                {state.docName ? `《${state.docName}》` : "参考文档"}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="px-2">
+              {state.resolveStatus === "loading" && (
                 <div
                   className="flex flex-col items-center justify-center gap-3 py-16"
                   role="status"
@@ -178,6 +185,7 @@ export function DocSourceDrawerProvider({
                   initialPage={state.initialPage}
                 />
               )}
+            </div>
           </div>
         </SheetContent>
       </Sheet>

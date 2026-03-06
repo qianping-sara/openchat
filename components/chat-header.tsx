@@ -25,7 +25,13 @@ function PureChatHeader({
 
   const headerContent = useMemo(
     () => (
-    <header className="relative sticky top-0 z-10 flex shrink-0 items-center gap-2 bg-background/80 px-2 py-1.5 backdrop-blur-md md:px-4">
+    <header
+      className="relative flex size-full items-center gap-2 border-b border-border/40 px-2 py-1.5 backdrop-blur-xl md:px-4"
+      style={{
+        background:
+          "linear-gradient(to bottom, color-mix(in oklch, var(--background) 60%, transparent), color-mix(in oklch, var(--background) 40%, transparent))",
+      }}
+    >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg"
