@@ -16,11 +16,17 @@ export const chatModels: ChatModel[] = [
   //   description: "128K 上下文，128K 输出",
   // },
   {
-    id: "azure/gpt-5.3-chat",
-    name: "GPT-5.3 Chat",
+    id: "azure/gpt-4o",
+    name: "GPT-4o Chat",
     provider: "azure",
-    description: "128K 上下文，128K 输出",
+    description: "",
   },
+  // {
+  //   id: "azure/gpt-5.3-chat",
+  //   name: "GPT-5.3 Chat",
+  //   provider: "azure",
+  //   description: "128K 上下文，128K 输出",
+  // },
   {
     id: "gemini/gemini-3-pro-preview",
     name: "Gemini 3 Pro",
