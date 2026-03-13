@@ -99,7 +99,7 @@ export function isReasoningModel(modelId?: string): boolean {
   const deployment = modelId?.startsWith("azure/")
     ? modelId.slice(6)
     : AZURE_DEPLOYMENT;
-  const reasoningModels = ["gpt-5.2", "gpt-5.1", "gpt-5"];
+  const reasoningModels = ["gpt-5.2", "gpt-5.4", "gpt-5"];
   return reasoningModels.some((model) => deployment.includes(model));
 }
 
