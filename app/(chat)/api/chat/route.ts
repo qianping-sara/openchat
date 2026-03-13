@@ -31,7 +31,7 @@ import {
 import type { DBMessage } from "@/lib/db/schema";
 import { OpenChatError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
-import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { convertToUIMessages, generateUUID, getTextFromMessage } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -196,6 +196,26 @@ export async function POST(request: Request) {
         const { tools: mcpTools } = await getMCPTools();
         const allTools = { ...mcpTools } as Record<string, Tool>;
 
+        // 标题一旦生成就立即写入流并更新 DB；失败时用首条消息前 30 字作 fallback，确保侧边栏不会一直显示 New chat
+        if (titlePromise && message) {
+          const fallbackTitle = (): string => {
+            const text = getTextFromMessage(message as ChatMessage).trim();
+            return text.length > 0 ? text.slice(0, 30) : "新对话";
+          };
+          titlePromise
+            .then((title) => {
+              const final = title?.trim() ? title.trim() : fallbackTitle();
+              dataStream.write({ type: "data-chat-title", data: final });
+              updateChatTitleById({ chatId: id, title: final });
+            })
+            .catch((err) => {
+              console.warn("[chat] Title generation failed:", err);
+              const final = fallbackTitle();
+              dataStream.write({ type: "data-chat-title", data: final });
+              updateChatTitleById({ chatId: id, title: final });
+            });
+        }
+
         try {
           // Multi-step loop: each step runs until model finishes; tool results are sent as
           // tool-result/tool-error so the next step runs. The SDK passes tool results back
@@ -222,17 +242,6 @@ export async function POST(request: Request) {
 
           // Merge first so the client receives reasoning/tool chunks immediately.
           dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
-
-          if (titlePromise) {
-            titlePromise
-              .then((title) => {
-                dataStream.write({ type: "data-chat-title", data: title });
-                updateChatTitleById({ chatId: id, title });
-              })
-              .catch(() => {
-                // ignore title generation failure
-              });
-          }
         } catch (error) {
           const errorId = generateUUID();
           const message =
@@ -288,6 +297,16 @@ export async function POST(request: Request) {
               chatId: id,
             })),
           });
+        }
+        // 兜底：若标题仍是 New chat，用首条用户消息前 30 字更新（应对标题生成失败或 stream 未送达）
+        const chatAfter = await getChatById({ id });
+        if (chatAfter?.title === "New chat") {
+          const firstUser = finishedMessages.find((m) => m.role === "user");
+          const text = firstUser
+            ? getTextFromMessage(firstUser as ChatMessage).trim()
+            : "";
+          const fallback = text.length > 0 ? text.slice(0, 30) : "新对话";
+          await updateChatTitleById({ chatId: id, title: fallback });
         }
       },
       onError: (error) => {
