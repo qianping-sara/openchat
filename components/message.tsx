@@ -107,7 +107,7 @@ const PurePreviewMessage = ({
 
         <div
           className={cn("flex flex-col", {
-            "gap-2 md:gap-4": message.parts?.some(
+            "gap-1 md:gap-2": message.parts?.some(
               (p) => p.type === "text" && p.text?.trim()
             ),
             "w-full":
@@ -176,15 +176,8 @@ const PurePreviewMessage = ({
                     <Response>{sanitizeText(part.text)}</Response>
                   </MessageContent>
                 );
-                const showSourcesBeforeAnswer =
-                  message.role === "assistant" &&
-                  index === firstTextPartIndex &&
-                  pageIndexSources.length > 0;
                 return (
                   <div key={key} className="flex flex-col gap-3">
-                    {showSourcesBeforeAnswer && (
-                      <MessageSources sources={pageIndexSources} />
-                    )}
                     <div>{content}</div>
                   </div>
                 );
@@ -570,11 +563,9 @@ const PurePreviewMessage = ({
             return null;
           })}
 
-          {message.role === "assistant" &&
-            pageIndexSources.length > 0 &&
-            firstTextPartIndex === -1 && (
-              <MessageSources sources={pageIndexSources} />
-            )}
+          {message.role === "assistant" && pageIndexSources.length > 0 && (
+            <MessageSources sources={pageIndexSources} />
+          )}
 
           {!isReadonly && (
             <MessageActions

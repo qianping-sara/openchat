@@ -12,7 +12,8 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
     className={cn(
       "group flex w-full items-end justify-end gap-2 py-4",
       from === "user" ? "is-user" : "is-assistant flex-row-reverse justify-end",
-      "[&>div]:max-w-[80%]",
+      // 移动端占满宽度，桌面/iPad 保持 80% 的对话气泡宽度
+      "[&>div]:max-w-full sm:[&>div]:max-w-[80%]",
       className
     )}
     {...props}

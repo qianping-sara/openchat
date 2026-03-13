@@ -6,7 +6,6 @@ import {
   ChevronDownIcon,
   CircleIcon,
   ClockIcon,
-  WrenchIcon,
   XCircleIcon,
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
@@ -21,7 +20,7 @@ export type ToolProps = ComponentProps<typeof Collapsible>;
 
 export const Tool = ({ className, ...props }: ToolProps) => (
   <Collapsible
-    className={cn("group not-prose mb-2 w-full", className)}
+    className={cn("group not-prose mb-0 w-full", className)}
     {...props}
   />
 );
@@ -78,25 +77,23 @@ export const ToolHeader = ({
 }: ToolHeaderProps) => (
   <CollapsibleTrigger
     className={cn(
-      "flex w-full min-w-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+      "flex w-full min-w-0 items-center gap-0.5 rounded-md px-0.5 py-0 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
       className
     )}
     {...props}
   >
-    <WrenchIcon className="size-3 shrink-0" />
-    <span className="min-w-0 truncate">
-      Tools: {getToolDisplayName(type)}
-    </span>
-    <span className="flex shrink-0 items-center gap-0.5">
+    <span className="flex shrink-0 items-center gap-1">
       {getStatusIcon(state)}
-      <span className="hidden sm:inline">{getStatusLabel(state)}</span>
     </span>
-    <ChevronDownIcon
-      className={cn(
-        "size-2.5 shrink-0 transition-transform",
-        "group-data-[state=open]:rotate-180"
-      )}
-    />
+    <span className="min-w-0 flex items-center gap-0.5 truncate text-left">
+      <span className="truncate">{getToolDisplayName(type)}</span>
+      <ChevronDownIcon
+        className={cn(
+          "size-2.5 shrink-0 transition-transform",
+          "group-data-[state=open]:rotate-180"
+        )}
+      />
+    </span>
   </CollapsibleTrigger>
 );
 
@@ -109,7 +106,7 @@ export const ToolContent = ({
 }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
-      "mt-1.5 text-[11px] text-muted-foreground leading-relaxed",
+      "mt-1 text-[11px] text-muted-foreground leading-relaxed",
       "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 outline-hidden data-[state=closed]:animate-out data-[state=open]:animate-in",
       className
     )}
