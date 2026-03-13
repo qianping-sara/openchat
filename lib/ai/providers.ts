@@ -1,5 +1,6 @@
 import { createAzure } from "@ai-sdk/azure";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
   customProvider,
   defaultSettingsMiddleware,
@@ -20,6 +21,13 @@ const AZURE_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT ?? "gpt-5.2-chat";
 // Google Gemini
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+});
+
+// SiliconFlow - Kimi K2 Thinking (OpenAI-compatible)
+const siliconflow = createOpenAICompatible({
+  name: "siliconflow",
+  apiKey: process.env.K2_API_KEY,
+  baseURL: "https://api.siliconflow.cn/v1",
 });
 
 export const myProvider = isTestEnvironment
@@ -64,6 +72,22 @@ export function getLanguageModel(modelId?: string) {
     }
 
     return baseModel;
+  }
+
+  // 处理硅基流动 Kimi K2 Thinking（OpenAI-compatible）
+  // 使用 env 中配置的模型名称做一次显式匹配，避免前端 ID 与后端模型名不一致
+  const k2ModelId = process.env.K2_API_KEY_MODEL_NAME ?? "moonshotai/Kimi-K2-Thinking";
+  if (modelId === k2ModelId || modelId?.startsWith("moonshotai/")) {
+    return wrapLanguageModel({
+      // OpenAI-compatible provider 本身就是一个“选模型”的函数，不需要 .chat
+      model: siliconflow(k2ModelId),
+      middleware: defaultSettingsMiddleware({
+        settings: {
+          // 为长推理模型预留充足的输出上限（OpenAI 兼容字段为 max_output_tokens）
+          maxOutputTokens: 4096,
+        },
+      }),
+    });
   }
 
   // 从 modelId (如 azure/gpt-5.2) 提取 deployment 名称

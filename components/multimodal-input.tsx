@@ -481,6 +481,7 @@ function PureModelSelectorCompact({
   const providerNames: Record<string, string> = {
     azure: "Azure",
     gemini: "Google",
+    siliconflow: "SiliconFlow",
   };
 
   return (

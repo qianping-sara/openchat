@@ -21,12 +21,12 @@ export const chatModels: ChatModel[] = [
     provider: "azure",
     description: "",
   },
-  // {
-  //   id: "azure/gpt-5.3-chat",
-  //   name: "GPT-5.3 Chat",
-  //   provider: "azure",
-  //   description: "128K 上下文，128K 输出",
-  // },
+  {
+    id: process.env.K2_API_KEY_MODEL_NAME ?? "moonshotai/Kimi-K2-Thinking",
+    name: "Kimi-K2-Thinking",
+    provider: "siliconflow",
+    description: "256K 上下文窗口推理模型",
+  },
   // {
   //   id: "gemini/gemini-3-pro-preview",
   //   name: "Gemini 3 Pro",
