@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { Response } from "@/components/elements/response";
@@ -56,6 +56,8 @@ export function DocPreview({
   );
   const [data, setData] = useState<DocContentResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const hasScrolledToTarget = useRef(false);
+  const lastScrollKey = useRef<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -88,16 +90,41 @@ export function DocPreview({
     };
   }, [docId]);
 
+  // Reset scroll tracking when doc or target page changes (e.g. new open from reference)
+  const scrollKey = `${docId}-${initialPage ?? ""}-${pageParam ?? ""}`;
+  if (scrollKey !== lastScrollKey.current) {
+    lastScrollKey.current = scrollKey;
+    hasScrolledToTarget.current = false;
+  }
+
   useEffect(() => {
     if (status !== "success" || !data) return;
-    const pageNum = initialPage ?? (pageParam ? parseInt(pageParam, 10) : Number.NaN);
+    // When opened from reference (e.g. click "37"), prefer initialPageProp so URL doesn't override
+    const pageNum =
+      initialPageProp ??
+      (pageParam ? parseInt(pageParam, 10) : Number.NaN);
     if (Number.isNaN(pageNum) || pageNum < 1) return;
+    if (hasScrolledToTarget.current) return;
 
-    const el = document.getElementById(`page-${pageNum}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [status, data, initialPage, pageParam]);
+    const scrollToPage = () => {
+      const el = document.getElementById(`page-${pageNum}`);
+      if (el) {
+        hasScrolledToTarget.current = true;
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    // Defer so the full page list is in the DOM (avoids scrolling then "jumping back" when layout settles)
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const rafId = requestAnimationFrame(() => {
+      scrollToPage();
+      timeoutId = setTimeout(scrollToPage, 100);
+    });
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, [status, data, initialPageProp, pageParam]);
 
   if (status === "loading") {
     return (

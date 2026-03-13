@@ -5,6 +5,38 @@ import type { PageIndexSource } from "@/lib/citations/sources";
 import { useDocSourceDrawer } from "@/components/doc-source-drawer";
 import { cn } from "@/lib/utils";
 
+type PageBlock = { display: string; firstPage: number };
+
+/**
+ * Group sorted page numbers into blocks. Consecutive pages become a range (e.g. 37-38),
+ * single pages stay as one block. Each block is clickable and jumps to its first page.
+ */
+function groupPagesIntoBlocks(pages: number[]): PageBlock[] {
+  if (pages.length === 0) return [];
+  const sorted = [...new Set(pages)].sort((a, b) => a - b);
+  const blocks: PageBlock[] = [];
+  let start = sorted[0];
+  let end = sorted[0];
+
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === end + 1) {
+      end = sorted[i];
+    } else {
+      blocks.push({
+        display: start === end ? String(start) : `${start}-${end}`,
+        firstPage: start,
+      });
+      start = sorted[i];
+      end = sorted[i];
+    }
+  }
+  blocks.push({
+    display: start === end ? String(start) : `${start}-${end}`,
+    firstPage: start,
+  });
+  return blocks;
+}
+
 export function MessageSources({
   sources,
   className,
@@ -31,6 +63,7 @@ export function MessageSources({
       </div>
       <ul className="mt-2 space-y-1.5">
         {sources.map((source, index) => {
+          const pageBlocks = groupPagesIntoBlocks(source.pages);
           const firstPage = source.pages.at(0);
           return (
             <li
@@ -45,9 +78,25 @@ export function MessageSources({
               >
                 《{source.docName}》
               </button>
-              {source.pages.length > 0 && (
+              {pageBlocks.length > 0 && (
                 <span className="text-muted-foreground text-xs">
-                  第 {source.pages.join("、")} 页
+                  第{" "}
+                  {pageBlocks.map((block, blockIndex) => (
+                    <span key={`${source.docName}-${index}-${blockIndex}`}>
+                      {blockIndex > 0 && "、"}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          open(source.docName, block.firstPage)
+                        }
+                        className="underline-offset-4 hover:underline"
+                        title={`跳转到第 ${block.display} 页`}
+                      >
+                        {block.display}
+                      </button>
+                    </span>
+                  ))}{" "}
+                  页
                 </span>
               )}
             </li>

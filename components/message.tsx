@@ -80,6 +80,10 @@ const PurePreviewMessage = ({
 
   const pageIndexSources =
     message.role === "assistant" ? extractPageIndexSources(message) : [];
+  const firstTextPartIndex =
+    message.role === "assistant"
+      ? (message.parts?.findIndex((p) => p.type === "text") ?? -1)
+      : -1;
 
   useDataStream();
 
@@ -155,23 +159,33 @@ const PurePreviewMessage = ({
 
             if (type === "text") {
               if (mode === "view") {
+                const content = (
+                  <MessageContent
+                    className={cn(
+                      {
+                        "wrap-break-word w-fit rounded-2xl px-3 py-2 text-right":
+                          message.role === "user",
+                        "bg-transparent px-0 py-0 text-left":
+                          message.role === "assistant",
+                      },
+                      message.role === "user" &&
+                        "bg-[#E85D04]/25 text-orange-900 dark:bg-[#E85D04] dark:text-white"
+                    )}
+                    data-testid="message-content"
+                  >
+                    <Response>{sanitizeText(part.text)}</Response>
+                  </MessageContent>
+                );
+                const showSourcesBeforeAnswer =
+                  message.role === "assistant" &&
+                  index === firstTextPartIndex &&
+                  pageIndexSources.length > 0;
                 return (
-                  <div key={key}>
-                    <MessageContent
-                      className={cn(
-                        {
-                          "wrap-break-word w-fit rounded-2xl px-3 py-2 text-right":
-                            message.role === "user",
-                          "bg-transparent px-0 py-0 text-left":
-                            message.role === "assistant",
-                        },
-                        message.role === "user" &&
-                          "bg-[#E85D04]/25 text-orange-900 dark:bg-[#E85D04] dark:text-white"
-                      )}
-                      data-testid="message-content"
-                    >
-                      <Response>{sanitizeText(part.text)}</Response>
-                    </MessageContent>
+                  <div key={key} className="flex flex-col gap-3">
+                    {showSourcesBeforeAnswer && (
+                      <MessageSources sources={pageIndexSources} />
+                    )}
+                    <div>{content}</div>
                   </div>
                 );
               }
@@ -556,9 +570,11 @@ const PurePreviewMessage = ({
             return null;
           })}
 
-          {message.role === "assistant" && pageIndexSources.length > 0 && (
-            <MessageSources sources={pageIndexSources} />
-          )}
+          {message.role === "assistant" &&
+            pageIndexSources.length > 0 &&
+            firstTextPartIndex === -1 && (
+              <MessageSources sources={pageIndexSources} />
+            )}
 
           {!isReadonly && (
             <MessageActions
