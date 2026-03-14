@@ -44,6 +44,8 @@ function parseGetPageContentOutput(output: unknown): PageIndexSource | null {
   if (output == null || typeof output !== "object") return null;
 
   const obj = output as Record<string, unknown>;
+  // If the outer wrapper already marks this as an error, skip it entirely.
+  if (obj.isError === true) return null;
   const contentArr = obj.content;
   if (!Array.isArray(contentArr) || contentArr.length === 0) return null;
 
@@ -55,6 +57,11 @@ function parseGetPageContentOutput(output: unknown): PageIndexSource | null {
   try {
     inner = JSON.parse(text) as Record<string, unknown>;
   } catch {
+    return null;
+  }
+
+  // Skip inner error payloads as sources (they usually have meaningless doc_name like ":" or empty pages).
+  if (inner.error || inner.isError === true || inner.success === false) {
     return null;
   }
 
@@ -106,6 +113,44 @@ function parseGetPageContentInput(input: unknown): PageIndexSource | null {
 }
 
 /**
+ * Best-effort detection of error payloads, even when output is a raw JSON string.
+ */
+function isErrorLikeOutput(output: unknown): boolean {
+  if (output == null) return false;
+
+  if (typeof output === "string") {
+    const lower = output.toLowerCase();
+    return lower.includes('"iserror": true') || lower.includes("'isError': true".toLowerCase());
+  }
+
+  if (typeof output === "object") {
+    const obj = output as Record<string, unknown>;
+    if (obj.isError === true) return true;
+
+    const contentArr = obj.content;
+    if (Array.isArray(contentArr)) {
+      for (const item of contentArr) {
+        const maybeText =
+          item && typeof item === "object" && "text" in item
+            ? (item as { text?: unknown }).text
+            : undefined;
+        if (typeof maybeText === "string") {
+          const lower = maybeText.toLowerCase();
+          if (
+            lower.includes('"iserror": true') ||
+            lower.includes("'isError': true".toLowerCase())
+          ) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Deduplicate sources by docName, merging pages.
  */
 function deduplicateSources(sources: PageIndexSource[]): PageIndexSource[] {
@@ -144,14 +189,17 @@ export function extractPageIndexSources(message: ChatMessage): PageIndexSource[]
     };
 
     const toolName = dynamicPart.toolName;
-    if (
-      toolName !== "get_page_content" &&
-      toolName !== "get_content"
-    ) {
+    if (toolName !== "get_page_content" && toolName !== "get_content") {
       continue;
     }
 
-    if (dynamicPart.state !== "output-available" && dynamicPart.state !== "output-error") {
+    // Only treat successful outputs as citation sources, and skip any payloads
+    // that look like explicit error responses (including isError: true inside
+    // the JSON string).
+    if (dynamicPart.state !== "output-available") {
+      continue;
+    }
+    if (isErrorLikeOutput(dynamicPart.output)) {
       continue;
     }
 
