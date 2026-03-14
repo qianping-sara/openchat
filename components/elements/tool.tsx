@@ -4,8 +4,7 @@ import type { ToolUIPart } from "ai";
 import {
   CheckCircleIcon,
   ChevronDownIcon,
-  CircleIcon,
-  ClockIcon,
+  Loader2Icon,
   XCircleIcon,
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
@@ -31,34 +30,29 @@ export type ToolHeaderProps = {
   className?: string;
 };
 
-const getStatusLabel = (status: ToolUIPart["state"]) => {
-  const labels: Record<ToolUIPart["state"], string> = {
-    "input-streaming": "Pending",
-    "input-available": "Running",
-    "approval-requested": "Pending",
-    "approval-responded": "Approved",
-    "output-available": "Completed",
-    "output-error": "Error",
-    "output-denied": "Denied",
-  };
-  return labels[status];
-};
-
 const getStatusIcon = (status: ToolUIPart["state"]) => {
-  const icons: Record<ToolUIPart["state"], ReactNode> = {
-    "input-streaming": <CircleIcon className="size-3" />,
-    "input-available": <ClockIcon className="size-3 animate-pulse" />,
-    "approval-requested": <ClockIcon className="size-3 text-yellow-600" />,
-    "approval-responded": (
-      <CheckCircleIcon className="size-3 text-[#E85D04]" />
-    ),
-    "output-available": (
-      <CheckCircleIcon className="size-3 text-[#E85D04]" />
-    ),
-    "output-error": <XCircleIcon className="size-3 text-red-600" />,
-    "output-denied": <XCircleIcon className="size-3 text-orange-600" />,
-  };
-  return icons[status];
+  const isLoading =
+    status === "input-streaming" ||
+    status === "input-available" ||
+    status === "approval-requested";
+
+  if (isLoading) {
+    return <Loader2Icon className="size-3 animate-spin text-[#E85D04]" />;
+  }
+
+  if (status === "approval-responded" || status === "output-available") {
+    return <CheckCircleIcon className="size-3 text-[#E85D04]" />;
+  }
+
+  if (status === "output-error") {
+    return <XCircleIcon className="size-3 text-red-600" />;
+  }
+
+  if (status === "output-denied") {
+    return <XCircleIcon className="size-3 text-orange-600" />;
+  }
+
+  return null;
 };
 
 /** Human-readable label for tool type (e.g. "tool-sequential_thinking" → "Sequential thinking") */
@@ -112,7 +106,7 @@ export const ToolContent = ({
     )}
     {...props}
   >
-    <div className="max-h-[50vh] overflow-y-auto rounded-md border border-border/50 bg-muted/30 p-2.5">
+    <div className="max-h-[50vh] overflow-y-auto rounded-md border border-border/50 bg-muted/30 px-1.5 py-1">
       {children}
     </div>
   </CollapsibleContent>

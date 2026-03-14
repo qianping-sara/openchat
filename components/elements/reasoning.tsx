@@ -1,7 +1,7 @@
 "use client";
 
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import { BrainIcon, ChevronDownIcon } from "lucide-react";
+import { BrainIcon, ChevronDownIcon, Loader2Icon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import {
@@ -104,18 +104,23 @@ export const ReasoningTrigger = memo(
     return (
       <CollapsibleTrigger
         className={cn(
-          "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+          "flex items-center gap-0.5 rounded-md px-0.5 py-0 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
           className
         )}
         {...props}
       >
         {children ?? (
           <>
-            <BrainIcon className="size-3" />
             {isStreaming || duration === 0 ? (
-              <span>Thinking</span>
+              <>
+                <Loader2Icon className="size-3 animate-spin" />
+                <span>Thinking</span>
+              </>
             ) : (
-              <span>{duration}s</span>
+              <>
+                <BrainIcon className="size-3" />
+                <span>{duration}s</span>
+              </>
             )}
             <ChevronDownIcon
               className={cn(

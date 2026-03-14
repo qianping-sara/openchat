@@ -10,12 +10,18 @@ import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolInput,
   ToolOutput,
 } from "./elements/tool";
+import { ChevronDownIcon } from "lucide-react";
 import { SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 
@@ -216,7 +222,7 @@ const PurePreviewMessage = ({
 
               if (state === "output-available") {
                 return (
-                  <div className="w-full" key={toolCallId}>
+                  <div className="w-full pl-4" key={toolCallId}>
                     <Weather weatherAtLocation={part.output} />
                   </div>
                 );
@@ -302,21 +308,21 @@ const PurePreviewMessage = ({
 
               if (part.output && "error" in part.output) {
                 return (
-                  <div
-                    className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
-                    key={toolCallId}
-                  >
-                    Error creating document: {String(part.output.error)}
+                  <div className="w-full" key={toolCallId}>
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50">
+                      Error creating document: {String(part.output.error)}
+                    </div>
                   </div>
                 );
               }
 
               return (
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  key={toolCallId}
-                  result={part.output}
-                />
+                <div className="w-full" key={toolCallId}>
+                  <DocumentPreview
+                    isReadonly={isReadonly}
+                    result={part.output}
+                  />
+                </div>
               );
             }
 
@@ -325,17 +331,16 @@ const PurePreviewMessage = ({
 
               if (part.output && "error" in part.output) {
                 return (
-                  <div
-                    className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
-                    key={toolCallId}
-                  >
-                    Error updating document: {String(part.output.error)}
+                  <div className="w-full" key={toolCallId}>
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50">
+                      Error updating document: {String(part.output.error)}
+                    </div>
                   </div>
                 );
               }
 
               return (
-                <div className="relative" key={toolCallId}>
+                <div className="relative w-full" key={toolCallId}>
                   <DocumentPreview
                     args={{ ...part.output, isUpdate: true }}
                     isReadonly={isReadonly}
@@ -349,9 +354,10 @@ const PurePreviewMessage = ({
               const { toolCallId, state } = part;
 
               return (
-                <Tool defaultOpen={false} key={toolCallId}>
-                  <ToolHeader state={state} type="tool-requestSuggestions" />
-                  <ToolContent>
+                <div className="w-full" key={toolCallId}>
+                  <Tool className="w-full" defaultOpen={false}>
+                    <ToolHeader state={state} type="tool-requestSuggestions" />
+                    <ToolContent>
                     {state === "input-available" && (
                       <ToolInput input={part.input} />
                     )}
@@ -373,8 +379,9 @@ const PurePreviewMessage = ({
                         }
                       />
                     )}
-                  </ToolContent>
-                </Tool>
+                    </ToolContent>
+                  </Tool>
+                </div>
               );
             }
 
@@ -397,14 +404,135 @@ const PurePreviewMessage = ({
                 | "output-available"
                 | "output-error"
                 | "output-denied";
-              const headerType = `tool-${toolName}`;
+              const headerType = `tool-${toolName}` as `tool-${string}`;
 
+              // Parse get_page_content output to detect success vs error and extract doc_name + pages
+              let parsedOutput: unknown = dynamicPart.output;
+              if (typeof parsedOutput === "string") {
+                try {
+                  parsedOutput = JSON.parse(parsedOutput) as unknown;
+                } catch {
+                  // keep as string
+                }
+              }
+              const isToolError =
+                parsedOutput &&
+                typeof parsedOutput === "object" &&
+                "isError" in parsedOutput &&
+                (parsedOutput as { isError?: boolean }).isError === true;
+
+              let innerParsed: unknown = parsedOutput;
+              if (
+                innerParsed &&
+                typeof innerParsed === "object" &&
+                Array.isArray((innerParsed as { content?: unknown[] }).content) &&
+                (innerParsed as { content: { type?: string; text?: string }[] })
+                  .content[0]?.type === "text"
+              ) {
+                const text = (
+                  innerParsed as { content: { text?: string }[] }
+                ).content[0]?.text;
+                if (typeof text === "string") {
+                  try {
+                    const maybeInner = JSON.parse(text) as unknown;
+                    if (maybeInner && typeof maybeInner === "object") {
+                      innerParsed = maybeInner;
+                    }
+                  } catch {
+                    // keep outer
+                  }
+                }
+              }
+              const isInnerError =
+                innerParsed &&
+                typeof innerParsed === "object" &&
+                "isError" in innerParsed &&
+                (innerParsed as { isError?: boolean }).isError === true;
+              const isGetPageContentSuccess =
+                toolName === "get_page_content" &&
+                !isToolError &&
+                !isInnerError &&
+                innerParsed &&
+                typeof innerParsed === "object" &&
+                ("success" in innerParsed || "doc_name" in innerParsed);
+
+              let docName: string | undefined;
+              const pageLabels: string[] = [];
+              if (isGetPageContentSuccess && innerParsed && typeof innerParsed === "object") {
+                const inner = innerParsed as {
+                  doc_name?: string;
+                  returned_pages?: string;
+                  content?: Array<{ page?: number }>;
+                };
+                docName = inner.doc_name;
+                if (inner.returned_pages) {
+                  pageLabels.push(`p.${inner.returned_pages}`);
+                } else if (Array.isArray(inner.content)) {
+                  const pages = inner.content
+                    .map((c) => c.page)
+                    .filter((p): p is number => typeof p === "number");
+                  for (const p of pages) {
+                    pageLabels.push(`p.${p}`);
+                  }
+                }
+              }
+
+              // get_page_content success: compact summary row (doc_name + pages) that toggles raw JSON
+              if (
+                toolName === "get_page_content" &&
+                displayState === "output-available" &&
+                isGetPageContentSuccess
+              ) {
+                const rawJson =
+                  typeof dynamicPart.output === "string"
+                    ? dynamicPart.output
+                    : JSON.stringify(dynamicPart.output, null, 2);
+                return (
+                  <div className="w-full" key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={false}>
+                      <ToolHeader state={displayState} type={headerType} />
+                      <ToolContent>
+                        <Collapsible
+                          className="group/result mt-0.5"
+                          defaultOpen={false}
+                        >
+                          <CollapsibleTrigger className="flex w-full min-w-0 items-center gap-1 rounded-md px-0.5 py-0 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                            <span className="min-w-0 truncate font-medium text-foreground">
+                              Checking《{docName ?? "Unknown document"}》
+                            </span>
+                            {pageLabels.length > 0 && (
+                              <span className="shrink-0 text-[11px]">
+                                {pageLabels.join(" ")}
+                              </span>
+                            )}
+                            <ChevronDownIcon
+                              className={cn(
+                                "size-2.5 shrink-0 transition-transform",
+                                "group-data-[state=open]/result:rotate-180"
+                              )}
+                            />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2 outline-hidden">
+                            <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-md border border-border/50 bg-muted/50 p-3">
+                              <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                {rawJson}
+                              </pre>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </ToolContent>
+                    </Tool>
+                  </div>
+                );
+              }
+
+              // Default dynamic-tool rendering (including get_page_content error)
               return (
                 <div className="w-full" key={key}>
-                  <Tool defaultOpen={false}>
+                  <Tool className="w-full" defaultOpen={false}>
                     <ToolHeader
                       state={displayState}
-                      type={headerType as `tool-${string}`}
+                      type={headerType}
                     />
                     <ToolContent>
                       {(displayState === "input-available" ||
@@ -494,7 +622,7 @@ const PurePreviewMessage = ({
 
               return (
                 <div className="w-full" key={toolCallId}>
-                  <Tool defaultOpen={false}>
+                  <Tool className="w-full" defaultOpen={false}>
                     <ToolHeader
                       state={displayState}
                       type={type as `tool-${string}`}
