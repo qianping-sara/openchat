@@ -111,7 +111,7 @@ export const ReasoningTrigger = memo(
       >
         {children ?? (
           <>
-            {isStreaming || duration === 0 ? (
+            {isStreaming ? (
               <>
                 <Loader2Icon className="size-3 animate-spin" />
                 <span>Thinking</span>
