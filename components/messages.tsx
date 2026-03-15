@@ -81,7 +81,10 @@ function PureMessages({
           {status === "submitted" &&
             !messages.some((msg) =>
               msg.parts?.some(
-                (part) => "state" in part && part.state === "approval-responded"
+                (part) =>
+                  part != null &&
+                  "state" in part &&
+                  part.state === "approval-responded"
               )
             ) && <ThinkingMessage />}
 

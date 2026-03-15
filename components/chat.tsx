@@ -98,6 +98,7 @@ export function Chat({
       const shouldContinue =
         lastMessage?.parts?.some(
           (part) =>
+            part != null &&
             "state" in part &&
             part.state === "approval-responded" &&
             "approval" in part &&
@@ -114,6 +115,7 @@ export function Chat({
           lastMessage?.role !== "user" ||
           request.messages.some((msg) =>
             msg.parts?.some((part) => {
+              if (part == null) return false;
               const state = (part as { state?: string }).state;
               return (
                 state === "approval-responded" || state === "output-denied"

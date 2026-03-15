@@ -179,7 +179,7 @@ export function extractPageIndexSources(message: ChatMessage): PageIndexSource[]
   const sources: PageIndexSource[] = [];
 
   for (const part of message.parts) {
-    if (part.type !== "dynamic-tool") continue;
+    if (part == null || part.type !== "dynamic-tool") continue;
 
     const dynamicPart = part as {
       toolName?: string;

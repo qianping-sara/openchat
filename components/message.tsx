@@ -146,6 +146,7 @@ const PurePreviewMessage = ({
           )}
 
           {message.parts?.map((part, index) => {
+            if (part == null) return null;
             const { type } = part;
             const key = `message-${message.id}-part-${index}`;
 
